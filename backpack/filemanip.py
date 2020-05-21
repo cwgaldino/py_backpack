@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Support module for dealing with files.
-
-@author: galdino
-"""
+"""Support module for dealing with files."""
 
 import os
 import sys
@@ -15,6 +12,7 @@ import collections
 from .interact import query_yes_no
 import json
 import warnings
+import re
 
 def checkExtension(filepath, extension):
     """Check if file has desired extension.
@@ -39,83 +37,66 @@ def checkExtension(filepath, extension):
         return -1
 
 
-def rename_files(fileList, values2keep, separator='_', ask=True):
+def rename_files(fileList, pattern, newPattern, ask=True):
     """Change the filename pattern of several files.
 
     Args:
         fileList (str or pathlib.Path): list with full file directory paths.
-        separator (str, optional): string that separates information chuncks.
-        values2keep (list): Each chunk of information (which is
-            separated by "separator") is assigned a number based on its position.
-            The first info is 0, then 1, and so on. `values2keep` is a list of which
-            info chuncks you want to keep and in which order.
-        ask (bool): If true, it shows all the new filenames and asks for
-            permission to rename.
-
-    Example:
-        Suppose a file naming system with like:
-
-        <folder>/000_58949_test0.txt
-
-        <folder>/001_98769_test1.txt
-
-        ...
-
-        Suppose that we want to rename the file like:
-
-        <folder>/test0_58949.txt
-
-        <folder>/test1_98769.txt
-
-        ...
-
-        Then we would run this function with `values2keep=[2, 1]`.
+        pattern (str): string that represents the filename pattern. Use ``{}`` to collect values within the file name.
+        newPattern (str): Each chunk of information (which is marked with ``{}`` in ``pattern`` is assigned a number based on its position. The first info is
+            0, then 1, and so on. Use ``{position}`` to define the new pattern,
+            e.g., ``newPattern={0}_{2}K-{1}.dat``. Note that `{` is a special character
+            and must not appear in the filename.
+        ask (bool): If true, it shows all the new filenames and asks for permission to rename.
     """
+    permission = True
+    n_infos = pattern.count('{}')
+    pattern = pattern.replace('{}', '(.+?)')
+
+    a = re.findall('{.+?}', newPattern)
+    a = [int(item.replace('{', '').replace('}', '')) for item in a]
+    if n_infos != max(a)+1:
+        raise AttributeError("newPattern and pattern have different number of marked infos --> {}")
+
+
     if ask:
+        permission = False
         print('\n' + '='*20)
         print('The following files will be renamed:\n')
 
-    for filePath in fileList:
-        filePath = Path(filePath)
+        for filePath in fileList:
+            filePath = Path(filePath)
 
-        # temporarily remove extension
-        a = filePath.name.split('.')
-        if len(a) > 1:
-            name = ''.join(a[0:-1])
-            ext = a[-1]
-        else:
-            name = filePath.name
-            ext = None
+            # new name
+            a = re.search(pattern, filePath.name)
+            a = [a.group(i) for i in range(1, n_infos+1)]
+            newPattern_mod = newPattern.replace("{", "{a[").replace("}", "]}")
+            nameNew = eval("f'"+ newPattern_mod + "'")
 
-        # new name
-        a = name.split(separator)
-        nameNew = ''
-        for idx in values2keep:
-            nameNew = nameNew + a[idx] + '_'
-
-        # put extension back
-        if ext is None:
-            nameNew = nameNew[:-1]
-        else:
-            nameNew = nameNew[:-1] + '.' + ext
-
-        if ask:
             # print('\n' + '='*20)
             # print('The following files will be renamed:\n')
             print('OLD NAME = ' + filePath.name)
             print('NEW NAME = ' + nameNew)
-            print('\n')
-        else:
+            print('--')
+
+        permission = query_yes_no('Change names?', default="yes")
+
+
+    if permission:
+        for filePath in fileList:
+            filePath = Path(filePath)
+
+            # new name
+            a = re.search(pattern, filePath.name)
+            a = [a.group(i) for i in range(1, n_infos+1)]
+            newPattern_mod = newPattern.replace("{", "{a[").replace("}", "]}")
+            nameNew = eval("f'"+ newPattern_mod + "'")
+
             filePath.rename(filePath.parent / nameNew)
 
-    if ask:
-        y = query_yes_no('Change names?', default="yes")
+        print('Files renamed!')
     else:
-        print('\nFiles renamed!')
-        # print('\n' + '='*20)
-        return
-    if y or not ask:
-        filenamePattern(fileList, values2keep, separator, ask=False)
+        warnings.warn('Files NOT renamed.')
 
 
 def get_fileList(dirpath='.', string='*'):
@@ -291,19 +272,41 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False):
     return 1
 
 
-def load_obj(filepath):
+def _to_int(obj):
+    """Change keys of a dictionary from string to int when possible."""
+    for key in list(obj.keys()):
+        try:
+            if float(key).is_integer():
+                new_key = int(float(key))
+        except:
+            new_key = key
+        if new_key != key:
+            obj[new_key] = obj[key]
+            del obj[key]
+    return obj
+
+
+def load_obj(filepath, dict_keys_to_int=False):
     """Load object (array, dictionary, list, etc...) from a txt file.
 
     Args:
         filepath (str or pathlib.Path): file path to load.
+        dict_keys_to_int (bool, optional): If True, it will change ALL
+            numeric dict keys (even for key in nested dictionarys to int, e.g.,
+            dictObject["0.0"] will be dictObject[0].
 
     Returns:
         object.
     """
     filepath = Path(filepath)
 
+
+
     with open(str(filepath), 'r') as file:
-        obj = json.load(file)
+        if dict_keys_to_int:
+            obj = json.load(file, object_hook=_to_int)
+        else:
+            obj = json.load(file)
     return obj
 
 
@@ -359,7 +362,7 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
         1 if successful and -1 otherwise.
 
     See Also:
-        :py:func:`load_data`, :py:func:`~manipUtils.figmanip.setFigurePosition`.
+        :py:func:`load_data`, :py:func:`~backpack.figmanip.setFigurePosition`.
     """
     filepath = Path(filepath)
 

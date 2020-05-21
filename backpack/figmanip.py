@@ -6,12 +6,21 @@ Author: Carlos Galdino
 Email: galdino@ifi.unicamp.br
 """
 
+# standard libraries
+import numpy as np
+from pathlib import Path
+import copy
+import warnings
+
+# matplotlib libraries
 from matplotlib.pyplot import get_current_fig_manager
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-import numpy as np
-from pathlib import Path
+
+# backpack
+from .arraymanip import index
+
 
 
 def setFigurePosition(*args):
@@ -76,6 +85,22 @@ def setFigureSize(*args):
             print('setFigurePosition(): Backend not suported.\n')
 
 
+def maximize():
+    "Maximize current fig."""
+    figManager = plt.get_current_fig_manager()
+
+    try:  # tested on tKinter backend
+        figManager.frame.Maximize(True)
+
+    except AttributeError:  # tested on qt4 and qt5 backends
+        try:
+            figManager.window.showMaximized()
+        except AttributeError:
+            print('Backend not suported.\n')
+            return (0, 0)
+
+
+
 def getFigurePosition():
     """Get the position of a matplotlib position on the screen.
 
@@ -116,6 +141,87 @@ def getFigureSize():
             return (0, 0)
 
 
+def zoom(xinit, xfinal, fig=None, marginy=2, marginx=2):
+    """pass.
+    margin in percentage.
+    """
+    if fig is None:
+        fig = plt.gcf()
+
+    ymax = 0
+    ymin = 0
+
+    for axis in fig.axes:
+        for line in axis.get_lines():
+            try:
+                ymax_temp = max(line.get_data()[1][index(line.get_data()[0], xinit): index(line.get_data()[0], xfinal)])
+                ymin_temp = min(line.get_data()[1][index(line.get_data()[0], xinit): index(line.get_data()[0], xfinal)])
+            except ValueError:
+                warnings.warn("All points of some data are outside of the required range.")
+            try:
+                if ymax_temp > ymax:
+                    ymax = copy.copy(ymax_temp)
+                if ymin_temp < ymin:
+                    ymin = copy.copy(ymin_temp)
+
+                m =  (ymax-ymin)*marginy/100
+                plt.ylim(ymin-m, ymax+m)
+
+                m =  (xfinal-xinit)*marginx/100
+                plt.xlim(xinit, xfinal)
+            except UnboundLocalError:
+                warnings.warn("All data are outside of the required range. Cannot zoom.")
+
+
+
+def saveFigsInPDF(dirname, filename, figs='all'):
+    """Save multiple matplotlib figures in pdf.
+
+    Args:
+        dirname (string or pathlib.Path): directory path
+        filename (string): filename
+        figs (list, optional): list with the figure numbers to save. Use 'all' to save all.
+    """
+    # check extension
+    if filename.split('.')[-1] != 'pdf':
+        filename += '.pdf'
+
+    if figs is 'all':
+        figs = [plt.figure(n) for n in plt.get_fignums()]
+    if len(figs) > 1:
+        pp = PdfPages(str(Path(dirname)/filename))
+        for fig in figs:
+            fig.savefig(pp, format='pdf')
+        pp.close()
+    else:
+        plt.savefig(str(Path(dirname)/filename), format='pdf')
+
+
+
+# from tkinter import Tk
+# def dataX_to_clipboard(event):
+#     r = Tk()
+#     r.withdraw()
+#     r.clipboard_clear()
+#     r.clipboard_append(str(event.xdata))
+#     r.update() # now it stays on the clipboard after the window is closed
+#     # r.destroy()
+
+
+
+
+
+def onclick(event):
+    # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+    #       ('double' if event.dblclick else 'single', event.button,
+    #        event.x, event.y, event.xdata, event.ydata))
+    global fig_dataX, fig_dataY
+    fig_dataX = event.xdata
+    fig_dataY = event.ydata
+
+
+
+# old but useful. I do not remenber why I use these
 def cm2inch(*tupl):
     """Convert values from cm to inches.
 
@@ -157,29 +263,6 @@ def plot_ruler(orientation, height=4, width=4):
         aux_ax.xaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
     aux_ax.tick_params(which='major',direction='out',top=True,left=True,right=True, labeltop=True, labelright=True)
     aux_ax.tick_params(which='minor',direction='out',top=True,left=True,right=True)
-
-
-def saveFigsInPDF(dirname, filename, figs='all'):
-    """Save multiple matplotlib figures in pdf.
-
-    Args:
-        dirname (string or pathlib.Path): directory path
-        filename (string): filename
-        figs (list, optional): list with the figure numbers to save. Use 'all' to save all.
-    """
-    # check extension
-    if filename.split('.')[-1] != 'pdf':
-        filename += '.pdf'
-
-    if figs is 'all':
-        figs = [plt.figure(n) for n in plt.get_fignums()]
-    if len(figs) > 1:
-        pp = PdfPages(str(Path(dirname)/filename))
-        for fig in figs:
-            fig.savefig(pp, format='pdf')
-        pp.close()
-    else:
-        plt.savefig(str(Path(dirname)/filename), format='pdf')
 
 
 def axBox2figBox(ax, points):

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'manipUtils'
+project = 'py-backpack'
 copyright = '2020, Carlos Galdino'
 author = 'Carlos Galdino'
 
@@ -58,5 +58,8 @@ html_static_path = ['_static']
 
 # -- sphinx_copybutton configuration ------------------------------------------
 copybutton_prompt_text = ">>> "
-copybutton_remove_prompts = False
-copybutton_only_copy_prompt_lines = False
+copybutton_remove_prompts = True
+copybutton_only_copy_prompt_lines = True
+
+# -- autodoc configuration ----------------------------------------------------
+autodoc_member_order = 'bysource'

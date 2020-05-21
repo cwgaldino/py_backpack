@@ -4,6 +4,7 @@
 
 import os
 import sys
+import warnings
 
 try:
     import winsound
@@ -11,14 +12,18 @@ except ModuleNotFoundError:
     pass
 
 
-def makeSound(duration=1):
-    """Make a sound for two seconds.
+def makeSound(duration=1, freq=440):
+    """Make a sound.
 
-    On linux you need to instal sox:
-    sudo apt install sox
+    On linux (tested on ubuntu) you need to instal sox:
+    ``sudo apt install sox``
 
-    On windows you need install winsound:
-    pip install winsound
+    On windows you need install python package winsound:
+    ``pip install winsound``
+
+    Args:
+        duration (int, optional): in seconds.
+        freq (int, optional): in Hertz
     """
     uname = sys.platform.lower()
     if os.name == 'nt':
@@ -31,17 +36,22 @@ def makeSound(duration=1):
 
     if uname == 'win':
         try: winsound.Beep(freq, duration)
-        except: print('Warning: myModules.makeSound cannot generate sound.')
+        except: warnings.warn('Cannot generate sound.')
     else:
         try: os.system('play -nq -t alsa synth {} sine {}'.format(duration/1000, freq))
-        except: print('Warning: myModules.makeSound cannot generate sound.')
+        except: warnings.warn('Cannot generate sound.')
 
 
 def sayOutLoud(message):
-    """Make a sound.
+    """Say out load something.
 
-    You need to install the speech-dispatcher package in Ubuntu (or the
-    corresponding package on other distributions).
+    In ubuntu, you need to install the speech-dispatcher package: ``sudo apt-get install -y speech-dispatcher``
+
+    Warning:
+        Never tesed in other OS.
+
+    Args:
+        message (str): message to say out loud.
     """
     os.system('spd-say "' + str(message) + '"')
 
@@ -49,12 +59,15 @@ def sayOutLoud(message):
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question and return answer.
 
+    Note:
+        It accepts many variations of yes and no as answer, like, "y", "YES", "N", ...
+
     Args:
         question (str): is a string that is presented to the user.
         default ('yes', 'no' or None): is the presumed answer if the user just hits
             <Enter>. If None an answer is required of the user.
 
-    Returns
+    Returns:
         True for "yes" or False for "no".
     """
     valid = {"yes": True, "y": True, "ye": True, "Y": True, "YES": True, "YE": True,

@@ -1,185 +1,170 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Common mathematical function and distributions."""
+"""Common mathematical functions and distributions."""
 
 import numpy as np
-import scipy.integrate as integrate
 from scipy.special import erf
 
-
 def Gauss(x, A, c, w):
-    """Gaussian distribution.
+    r"""Gaussian distribution.
+
+    .. math:: y(x) = A e^{-\frac{(x-c)^2}{2 w^2}}
 
     :param x: x value
     :param A: Amplitude
     :param c: Center
     :param w: Sigma (standard deviation)
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
     return A*np.exp(-(x-c)**2/(2*w**2))
 
 
 def fwhmGauss(x, A, c, w):
-    """Gaussian distribution.
+    r"""Gaussian distribution.
+
+    .. math:: y(x) = A e^{-\frac{4 \ln(2) (x-c)^2}{w^2}}
 
     :param x: x value
     :param A: Amplitude
     :param c: Center
     :param w: FWHM
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
     return A*np.exp((-4*np.log(2)*((x-c)**2))/(w**2))
 
 
 def fwhmAreaGauss(x, A, c, w):
-    """Gaussian distribution.
+    r"""Gaussian distribution.
+
+    .. math:: y(x) = \frac{A}{w \sqrt{\frac{\pi}{4 \ln(2)}}}  e^{-\frac{4 \ln(2) (x-c)^2}{w^2}}
 
     :param x: x value
     :param A: Area under the curve
     :param c: Center
     :param w: FWHM
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
     return (A/(w*np.sqrt(np.pi/4*np.log(2))))*np.exp((-4*np.log(2)*((x-c)**2))/(w**2))
 
 
 def Lorentz(x, A, c):
-    """Cauchy–Lorentz distribution.
+    r"""Cauchy–Lorentz distribution.
+
+    .. math:: y(x) = \frac{1}{\pi A} \frac{A^2}{A^2 + (x-c)^2}
 
     :param x: x value
     :param A: Scale factor (gamma)
     :param c: Center
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
     return (1/(np.pi*A))*((A**2)/(A**2 + (x-c)**2))
 
 
 def fwhmLorentz(x, A, c, w):
-    """Cauchy–Lorentz distribution.
+    r"""Cauchy–Lorentz distribution.
+
+    .. math:: y(x) = A \frac{w^2}{w^2 + 4 (x-c)^2}
 
     :param x: x value
     :param A: Amplitude
     :param c: Center
     :param w: FWHM
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
     return A*((w**2)/(w**2 + 4* (x-c)**2))
 
 
-def fwhmAreaLorentz(x, A, c, w, offset):
-    """Cauchy–Lorentz distribution.
+def fwhmAreaLorentz(x, A, c, w):
+    r"""Cauchy–Lorentz distribution.
+
+    .. math:: y(x) = \frac{2A}{\pi} \frac{w}{w^2 + 4 (x-c)^2}
 
     :param x: x value
     :param A: Area under the curve
     :param c: Center
     :param w: FWHM
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
-    return ((2**A)/(np.pi))*((w)/(w**2 + 4*(x-c)**2))
+    return ((2*A)/(np.pi))*((w)/(w**2 + 4*(x-c)**2))
 
 
 def fwhmVoigt(x, A, c, w, m):
-    """Pseudo-voigt curve.
+    r"""Pseudo-voigt curve.
+
+    .. math:: y(x) = A \left[ m  \frac{w^2}{w^2 + 4 (x-c)^2}   + (1-m) e^{-\frac{4 \ln(2) (x-c)^2}{w^2}} \right]
 
     :param x: x value
     :param A: Amplitude
     :param c: Center
     :param w: FWHM
     :param m: Factor from 1 to 0 of the lorentzian amount
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
-    lorentz = ((w**2) / (w**2 + 4* (x-c)**2))
-    gauss = np.exp((-4*np.log(2)*((x-c)**2))/(w**2))
+    lorentz = fwhmLorentz(x, 1, c, w)
+    gauss = fwhmGauss(x, 1, c, w)
 
     return A*(m*lorentz + (1-m)*gauss)
 
 
 def fwhmAreaVoigt(x, A, c, w, m):
-    """Pseudo-voigt curve.
+    r"""Pseudo-voigt curve.
+
+    .. math:: y(x) = A \left[ m  \frac{2}{\pi} \frac{w}{w^2 + 4 (x-c)^2}   + (1-m) \frac{1}{w \sqrt{\frac{\pi}{4 \ln(2)}}}  e^{-\frac{4 \ln(2) (x-c)^2}{w^2}} \right]
 
     :param x: x value
     :param A: is the Area
     :param c: Center
     :param w: FWHM
     :param m: Factor from 1 to 0 of the lorentzian amount
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
-    lorentz = ((2**A)/(np.pi))*((w)/(w**2 + 4*(x-c)**2))
-    gauss = (A/(b*np.sqrt(np.pi/4*np.log(2))))*np.exp((-4*np.log(2)*((x-c)**2))/(w**2))
+    lorentz = fwhmAreaLorentz(x, 1, c, w)
+    gauss = fwhmAreaGauss(x, 1, c, w)
 
     return A*(m*lorentz + (1-m)*gauss)
 
 
 def fwhmArctan(x, A, c, w):
-    """Arctangent function.
+    r"""Arctangent function.
+
+    .. math:: y(x) =   \frac{A}{\np} \left[ \arctan(\frac{1}{w}(x-c)) + \frac{\pi}{2} \right]
 
     :param x: x value
     :param A: Amplitude
     :param c: Center
-    :param w: FWHM
-    :param m: Factor from 1 to 0 of the lorentzian amount
-    :return: Result y(x)
+    :param w: FWHM (it will take fwhm units to go from A/4 to (3A)/4)
+    :return: :math:`y(x)`
     """
 
-    return A * np.arctan(w*(x - c)) + A * (np.pi/2)
-
-
-def fwhmErr_1(x, A, c, w):
-    """Error function.
-
-    This error function is the integral of the fwhmGauss().
-
-    I never fully tested this function
-
-    :param x: x value
-    :param A: Amplitude
-    :param c: Center
-    :param w: FWHM
-    :return: Result y(x)
-    """
-
-    data1 = np.zeros([len(x)])
-
-    for i, val in enumerate(x):
-
-        if val > c:
-            points = [c]
-        else:
-            points = None
-
-        y, error = integrate.quad(lambda x: fwhmGauss(x, A, c, w), c-1000*w,
-                                  val, points=points, limit=10000)
-        data1[i] = y
-
-        if error > 10**-7:
-            print('WARNING! Point x= ', val, ' has error= ', error)
-
-    return data1
-
-
-def fwhmErr_2(x, A, c, w):
-    """Error function.
-
-    This error function is the integral of the fwhmGauss() calculated by
-    scipy.special.erf()
-
-    I never fully tested this function.
-
-    :param x: x value
-    :param A: Amplitude
-    :param c: Center
-    :param w: FWHM
-    :return: Result y(x)
-    """
-    return A * erf(w*(x - c))
+    return A * (np.arctan((w**-1)*(x - c)) + (np.pi/2))/np.pi
 
 def square(x, A, c, w):
-    """square step function.
+    r"""Square step function.
+
+    .. math::
+
+        y(x) =   \begin{cases}
+                    0, & \text{ for    $x < c-w/2$}\\
+                    A, & \text{ for  }  c-w/2 < x < c+w/2\\
+                    0, & \text{ for  }  x > c+w/2\\
+                    \end{cases}
 
     :param x: x value
     :param A: Amplitude
     :param c: Center
     :param w: FWHM
-    :return: Result y(x)
+    :return: :math:`y(x)`
     """
     return - np.heaviside(x-c-w/2, A)*A + np.heaviside(x-c+w/2, A)*A
+
+
+def fwhmErr(x, A, c, w):
+    """Error function. Integal of gaussian function calculated by ``scipy.special.erf()``.
+
+    :param x: x value
+    :param A: Amplitude
+    :param c: Center
+    :param w: FWHM (it will take roughly fwhm units to go from A/4 to (3A)/4)
+    :return: Result y(x)
+    """
+    return A/2 * (erf((w**-1)/2*(x - c))+1)

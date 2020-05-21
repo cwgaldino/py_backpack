@@ -66,8 +66,8 @@ var copyTargetText = (trigger) => {
   var target = document.querySelector(trigger.attributes['data-clipboard-target'].value);
   var textContent = target.innerText.split('\n');
   var copybuttonPromptText = '>>> '; // Inserted from config
-  var onlyCopyPromptLines = false; // Inserted from config
-  var removePrompts = false; // Inserted from config
+  var onlyCopyPromptLines = true; // Inserted from config
+  var removePrompts = true; // Inserted from config
 
   // Text content line filtering based on prompts (if a prompt text is given)
   if (copybuttonPromptText.length > 0) {
