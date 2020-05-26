@@ -37,41 +37,43 @@ def checkExtension(filepath, extension):
         return -1
 
 
-def rename_files(fileList, pattern, newPattern, ask=True):
+def rename_files(filelist, pattern, newPattern, ask=True):
     """Change the filename pattern of several files.
 
     Args:
-        fileList (str or pathlib.Path): list with full file directory paths.
+        filelist (list): list of filepaths. Filepaths as string or pathlib.Path object.
         pattern (str): string that represents the filename pattern. Use ``{}`` to collect values within the file name.
-        newPattern (str): Each chunk of information (which is marked with ``{}`` in ``pattern`` is assigned a number based on its position. The first info is
+        newPattern (str): Each chunk of information assigned with ``{}`` in ``pattern`` is assigned a number based on its position. The first info is
             0, then 1, and so on. Use ``{position}`` to define the new pattern,
-            e.g., ``newPattern={0}_{2}K-{1}.dat``. Note that `{` is a special character
-            and must not appear in the filename.
+            e.g., ``newPattern={0}_{2}K-{1}.dat``. Use ``\`` as scape key. Use ``{n}`` to add a index number (number of position in filelist).
         ask (bool): If true, it shows all the new filenames and asks for permission to rename.
     """
     permission = True
     n_infos = pattern.count('{}')
     pattern = pattern.replace('{}', '(.+?)')
 
+    newPattern = newPattern.replace('{n}', '[n]')
+
     a = re.findall('{.+?}', newPattern)
     a = [int(item.replace('{', '').replace('}', '')) for item in a]
-    if n_infos != max(a)+1:
-        raise AttributeError("newPattern and pattern have different number of marked infos --> {}")
-
+    if n_infos < max(a)+1:
+        raise AttributeError("newPattern has some {n} where n is bigger than the number of marked infos {} in pattern.")
 
     if ask:
         permission = False
         print('\n' + '='*20)
         print('The following files will be renamed:\n')
 
-        for filePath in fileList:
+        for n, filePath in enumerate(filelist):
             filePath = Path(filePath)
 
             # new name
             a = re.search(pattern, filePath.name)
             a = [a.group(i) for i in range(1, n_infos+1)]
-            newPattern_mod = newPattern.replace("{", "{a[").replace("}", "]}")
-            nameNew = eval("f'"+ newPattern_mod + "'")
+
+            newPattern_mod_1 = newPattern.replace('[n]', str(n))
+            newPattern_mod_2 = newPattern_mod_1.replace("{", "{a[").replace("}", "]}")
+            nameNew = eval("f'"+ newPattern_mod_2 + "'")
 
             # print('\n' + '='*20)
             # print('The following files will be renamed:\n')
@@ -83,14 +85,16 @@ def rename_files(fileList, pattern, newPattern, ask=True):
 
 
     if permission:
-        for filePath in fileList:
+        for n, filePath in enumerate(filelist):
             filePath = Path(filePath)
 
             # new name
             a = re.search(pattern, filePath.name)
             a = [a.group(i) for i in range(1, n_infos+1)]
-            newPattern_mod = newPattern.replace("{", "{a[").replace("}", "]}")
-            nameNew = eval("f'"+ newPattern_mod + "'")
+
+            newPattern_mod_1 = newPattern.replace('[n]', str(n))
+            newPattern_mod_2 = newPattern_mod_1.replace("{", "{a[").replace("}", "]}")
+            nameNew = eval("f'"+ newPattern_mod_2 + "'")
 
             filePath.rename(filePath.parent / nameNew)
 
@@ -99,7 +103,7 @@ def rename_files(fileList, pattern, newPattern, ask=True):
         warnings.warn('Files NOT renamed.')
 
 
-def get_fileList(dirpath='.', string='*'):
+def get_filelist(dirpath='.', string='*'):
     """Returns a list with all the files containg `string` in its name.
 
     Args:

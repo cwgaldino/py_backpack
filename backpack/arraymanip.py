@@ -80,54 +80,37 @@ def increasing_monotonicity(dataX, dataY):
             return data_sorted_clean[:, 0], data_sorted_clean[:, 1]
 
 
-def extractFromData(dataX, dataY, Xranges2extract):
-    '''
-    Extract elements from dataX and dataY that are whithin intervals in Xranges2extract.
+def extractFromData(x, y, ranges2extract):
+    """
+    Extract elements from x and y that are whithin intervals in ranges2extract.
 
     This function is useful for extracting parts from data. Like, supose you two lists
     interpreted as x and y data of a plot and y has a peak somewhere x=10 and x=20.
     Then you can use this function to build another pair os lists, like x_peak and y_peak
     with just the "peak part" of your data.
 
-    :NOTE: data must be monotonic.
-
-    :param dataX: 1darray to search for interval ranges
-    :param dataY: 1darray
-    :param Xranges2extract: list of dataX range values
+    :param x: 1darray to search for interval ranges
+    :param y: 1darray
+    :param ranges2extract: list of dataX range values
     :return: two numpy arrays
 
-    Example: Xranges2extract=[[783.7, 789.3], [797, 805]]
-    '''
+    Example: ranges2extract=[[783.7, 789.3], [797, 805]]
+    """
+    x_clean = []
+    y_clean = []
 
-    # Check if dataX is increasing or decreasing (must be increasing)
-    if dataX[0] > dataX[1]:  # if is decreasing, invert array
-        dataX = dataX[::-1]
-        dataY = dataY[::-1]
+    for xinit, xfinal in ranges2extract:
+        choose_range = np.logical_and(x>xinit, x<xfinal)
+        x_clean.append(x[choose_range])
+        y_clean.append(y[choose_range])
 
-    # Transforms bkgLimits in a numpy array in case it is not one yet
-    Xranges2extract = np.array(Xranges2extract)
+    # # flatten without numpy
+    # x_clean = [item for sublist in x_clean for item in sublist]
+    # y_clean = [item for sublist in y_clean for item in sublist]
 
-    # Transform energy limits in indexes
-    index = np.zeros([len(Xranges2extract), 2])  # Pre allocation
-    for i in range(0, len(Xranges2extract)):  # Loop trhough lines
-        index[i] = [np.argmin(np.abs(dataX-Xranges2extract[i, 0])),
-                    np.argmin(np.abs(dataX-Xranges2extract[i, 1]))]
-    index = index.astype(int)
-    # Return a list of indexes (same as Xranges2extract, but with indexes instead
-    #of X values)
+    # flatten
+    return np.array(x_clean).flatten(), np.array(y_clean).flatten()
 
-    # Isolate from data only the background
-    data2X = np.empty([1])  # Generate random 1 matrix
-    data2Y = np.empty([1])  # Generate random 1 matrix
-    for i in range(0, len(index)):  # Loop trhough lines of index
-        data2X = np.concatenate((data2X,dataX[index[i, 0]:index[i, 1]]))
-        data2Y = np.concatenate((data2Y,dataY[index[i, 0]:index[i, 1]]))
-    data2X = np.delete(data2X, (0), axis=0)  # Delete first line
-    data2Y = np.delete(data2Y, (0), axis=0)  # Delete first line
-    # Maybe in the future I will find a better way to do this, but when I pre alocate
-    # bkgData, the first comes with zeros, then later I have to delete it.
-
-    return data2X, data2Y
 
 
 def fastPeakFit(dataX, dataY, guess_c, guess_A, guess_w, guess_offset=0,
@@ -177,7 +160,7 @@ def fastPeakFit(dataX, dataY, guess_c, guess_A, guess_w, guess_offset=0,
                 [np.inf, finalX,  np.inf, 1, np.inf]]
 
     # Fit data
-    x2fit, y2fit = extractFromData(dataX, dataY, [[initX, finalX]])
+    x2fit, y2fit = extractFromData(dataX, dataY, [[initX, finalX],])
     popt, pcov = curve_fit(function2fit, x2fit, y2fit, p0,  # sigma = sigma,
                            bounds=bounds)
 
@@ -236,3 +219,55 @@ def hardShift(array, shift):
     :return: numpy array
     """
     return np.array(array) + shift
+
+
+
+# # OLD ==================================
+# def extractFromData_old(dataX, dataY, Xranges2extract):
+#     '''
+#     Extract elements from dataX and dataY that are whithin intervals in Xranges2extract.
+#
+#     This function is useful for extracting parts from data. Like, supose you two lists
+#     interpreted as x and y data of a plot and y has a peak somewhere x=10 and x=20.
+#     Then you can use this function to build another pair os lists, like x_peak and y_peak
+#     with just the "peak part" of your data.
+#
+#     :NOTE: data must be monotonic.
+#
+#     :param dataX: 1darray to search for interval ranges
+#     :param dataY: 1darray
+#     :param Xranges2extract: list of dataX range values
+#     :return: two numpy arrays
+#
+#     Example: Xranges2extract=[[783.7, 789.3], [797, 805]]
+#     '''
+#
+#     # Check if dataX is increasing or decreasing (must be increasing)
+#     if dataX[0] > dataX[1]:  # if is decreasing, invert array
+#         dataX = dataX[::-1]
+#         dataY = dataY[::-1]
+#
+#     # Transforms bkgLimits in a numpy array in case it is not one yet
+#     Xranges2extract = np.array(Xranges2extract)
+#
+#     # Transform energy limits in indexes
+#     index = np.zeros([len(Xranges2extract), 2])  # Pre allocation
+#     for i in range(0, len(Xranges2extract)):  # Loop trhough lines
+#         index[i] = [np.argmin(np.abs(dataX-Xranges2extract[i, 0])),
+#                     np.argmin(np.abs(dataX-Xranges2extract[i, 1]))]
+#     index = index.astype(int)
+#     # Return a list of indexes (same as Xranges2extract, but with indexes instead
+#     #of X values)
+#
+#     # Isolate from data only the background
+#     data2X = np.empty([1])  # Generate random 1 matrix
+#     data2Y = np.empty([1])  # Generate random 1 matrix
+#     for i in range(0, len(index)):  # Loop trhough lines of index
+#         data2X = np.concatenate((data2X,dataX[index[i, 0]:index[i, 1]]))
+#         data2Y = np.concatenate((data2Y,dataY[index[i, 0]:index[i, 1]]))
+#     data2X = np.delete(data2X, (0), axis=0)  # Delete first line
+#     data2Y = np.delete(data2Y, (0), axis=0)  # Delete first line
+#     # Maybe in the future I will find a better way to do this, but when I pre alocate
+#     # bkgData, the first comes with zeros, then later I have to delete it.
+#
+#     return data2X, data2Y
