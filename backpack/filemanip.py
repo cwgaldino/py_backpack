@@ -265,10 +265,10 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False):
                 if query_yes_no('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
                     pass
                 else:
-                    print('filemanip.save_obj ERROR: File not saved.')
+                    warnings.warn('File not saved because user did not allow overwriting.')
                     return -1
             else:
-                print('filemanip.save_obj WARNING: filepath is pointing to a folder. Saving file as Untitled.txt')
+                warnings.warn('filepath is pointing to a folder. Saving file as Untitled.txt')
                 filepath = filepath/'Untitled.txt'
 
     with open(str(filepath), 'w') as file:
