@@ -38,7 +38,7 @@ def setFigurePosition(*args):
         x = int(args[0][0])
         y = int(args[0][1])
     else:
-        print('Warning! Wrong input')
+        warnings.warn('Wrong input')
         return
 
     figManager = get_current_fig_manager()
@@ -52,7 +52,7 @@ def setFigurePosition(*args):
         try:  # tested on qt4 and qt5 backends
             figManager.window.setGeometry(int(x), int(y), width, height)
         except AttributeError:
-            print('setFigurePosition(): Backend not suported.\n')
+            warnings.warn('Backend not suported.')
 
 
 def setFigureSize(*args):
@@ -68,7 +68,7 @@ def setFigureSize(*args):
         width = int(args[0][0])
         height = int(args[0][1])
     else:
-        print('Warning! Wrong input')
+        warnings.warn('Wrong input')
         return
 
     figManager = get_current_fig_manager()
@@ -82,7 +82,7 @@ def setFigureSize(*args):
         try:  # tested on qt4 and qt5 backends
             figManager.window.setGeometry(x, y, width, height)
         except AttributeError:
-            print('setFigurePosition(): Backend not suported.\n')
+            warnings.warn('Backend not suported.')
 
 
 def maximize():
@@ -96,7 +96,7 @@ def maximize():
         try:
             figManager.window.showMaximized()
         except AttributeError:
-            print('Backend not suported.\n')
+            warnings.warn('Backend not suported.')
             return (0, 0)
 
 
@@ -118,7 +118,7 @@ def getFigurePosition():
         try:
             return (figManager.window.geometry().x(), figManager.window.geometry().y())
         except AttributeError:
-            print('Backend not suported.\n')
+            warnings.warn('Backend not suported.')
             return (0, 0)
 
 
@@ -137,7 +137,7 @@ def getFigureSize():
         try:
             return (figManager.window.geometry().width(), figManager.window.geometry().height())
         except AttributeError:
-            print('Backend not suported.\n')
+            warnings.warn('Backend not suported.')
             return (0, 0)
 
 
