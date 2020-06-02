@@ -116,7 +116,7 @@ def get_filelist(dirpath='.', string='*'):
     """
     dirpath = Path(dirpath)
 
-    if string is not '*':
+    if '*' not in string:
         string = '*' + string + '*'
     return list(dirpath.glob(string))
 
@@ -216,10 +216,10 @@ def save_string(string, filePath='./Untitled.txt', checkOverwrite=False):
                 if query_yes_no('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
                     pass
                 else:
-                    print('filemanip.saveString ERROR: File not saved.')
+                    warnings.warn('filemanip.saveString ERROR: File not saved.')
                     return -1
             else:
-                print('filemanip.saveString WARNING: filePath is pointing to a folder. Saving file as Untitled.txt')
+                warnings.warn('filePath is pointing to a folder. Saving file as Untitled.txt')
                 filePath = filePath/'Untitled.txt'
 
     f = open(str(filePath), 'w')
