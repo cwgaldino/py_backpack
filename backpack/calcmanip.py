@@ -321,9 +321,9 @@ def get_cells_value(sheetObject, row_init, col_init, row_final=None, col_final=N
     type= formula or data.
     """
     if row_final is None:
-        row_final = len(sheetObject.getRowDescriptions())
+        row_final = len(sheetObject.getRowDescriptions()) + sheetObject.queryVisibleCells().Count -1
     if col_final is None:
-        col_final = len(sheetObject.getColumnDescriptions())
+        col_final = len(sheetObject.getColumnDescriptions()) + sheetObject.queryVisibleCells().Count -1
 
     sheet_data = sheetObject.get_cell_range_by_position(col_init, row_init, col_final, row_final)
     if type == 'formula':
@@ -417,8 +417,8 @@ def copy_sheet(sheet2copy, sheet2paste, type='formula',
               Font=0, ConditionalFormat=False, Border=False, resize=None, additional=None):
     """ copy_sheet.
     """
-    last_col = len(sheet2copy.getColumnDescriptions())
-    last_row = len(sheet2copy.getRowDescriptions())
+    last_col = len(sheet2copy.getColumnDescriptions()) + sheet2copy.queryVisibleCells().Count -1
+    last_row = len(sheet2copy.getRowDescriptions())  + sheet2copy.queryVisibleCells().Count -1
 
     copy_cells(sheet2copy, sheet2paste, 0, 0, last_row, last_col, type=type, Font=Font, ConditionalFormat=ConditionalFormat, Border=Border, resize=resize, additional=None)
 

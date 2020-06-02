@@ -500,7 +500,7 @@ def load_data(filepath, delimiter=',', commentFlag='#', col_labels=None, force_a
     # col_labels
     if col_labels is None:
         if header == -1:
-            print('filemanip.load_data WARNING. Cannot find header. Importing an array.')
+            warnings.warn('Cannot find header. Importing an array.')
             return data
         elif force_array:
             return data
@@ -512,6 +512,17 @@ def load_data(filepath, delimiter=',', commentFlag='#', col_labels=None, force_a
 
     # create dict
     datadict = {col_labels[i]: data[:, i] for i in range(len(col_labels)) if not col_labels[i].startswith('*')}
+
+    # if a column returns only nan, this column is read as string
+    for key in datadict:
+        if False in [x for x in datadict[key] != datadict[key]]:  # test if the whole col is nan
+            pass
+        else:
+            # key conversion to col number
+            col_string = col_labels.index(key)
+            data = np.genfromtxt(filepath, delimiter=None, comments='#', usecols=[-1], dtype='S8')
+            datadict[key] = [x.decode('utf-8') for x in data]
+
     return datadict
 
 
