@@ -11,6 +11,7 @@ import numpy as np
 from pathlib import Path
 import copy
 import warnings
+from subprocess import Popen, PIPE
 
 # matplotlib libraries
 from matplotlib.pyplot import get_current_fig_manager
@@ -21,6 +22,31 @@ from matplotlib.ticker import MultipleLocator
 # backpack
 from .arraymanip import index
 
+
+def onclick(event):
+
+    if event.key == 'y' or event.button == 3:
+        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
+        p.communicate(input=bytes(f'{event.ydata}'.encode()))
+    else:
+        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
+        p.communicate(input=bytes(f'{event.xdata}'.encode()))
+
+    # double click (put image on clipboard)
+    if event.dblclick:
+        plt.savefig('.temporary_fig.png', dpi=250)
+        p = Popen([f'xclip -selection clipboard -t image/png -i {Path.cwd()/".temporary_fig.png"}'], shell=True)  # ctrl+V
+        # (Path.cwd()/".temporary_fig.png").unlink()
+
+    # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+    #       ('double' if event.dblclick else 'single', event.button,
+    #        event.x, event.y, event.xdata, event.ydata))
+
+
+def figure(**kwargs):
+    fig = plt.figure(**kwargs)
+    cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    return fig
 
 
 def setFigurePosition(*args):
@@ -100,7 +126,6 @@ def maximize():
             return (0, 0)
 
 
-
 def getFigurePosition():
     """Get the position of a matplotlib position on the screen.
 
@@ -173,7 +198,6 @@ def zoom(xinit, xfinal, fig=None, marginy=2, marginx=2):
                 warnings.warn("All data are outside of the required range. Cannot zoom.")
 
 
-
 def saveFigsInPDF(dirname, filename, figs='all'):
     """Save multiple matplotlib figures in pdf.
 
@@ -195,30 +219,6 @@ def saveFigsInPDF(dirname, filename, figs='all'):
         pp.close()
     else:
         plt.savefig(str(Path(dirname)/filename), format='pdf')
-
-
-
-# from tkinter import Tk
-# def dataX_to_clipboard(event):
-#     r = Tk()
-#     r.withdraw()
-#     r.clipboard_clear()
-#     r.clipboard_append(str(event.xdata))
-#     r.update() # now it stays on the clipboard after the window is closed
-#     # r.destroy()
-
-
-
-
-
-def onclick(event):
-    # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-    #       ('double' if event.dblclick else 'single', event.button,
-    #        event.x, event.y, event.xdata, event.ydata))
-    global fig_dataX, fig_dataY
-    fig_dataX = event.xdata
-    fig_dataY = event.ydata
-
 
 
 # old but useful. I do not remenber why I use these
