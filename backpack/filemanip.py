@@ -245,7 +245,7 @@ def load_string(filePath):
     return text
 
 
-def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False):
+def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=True):
     """Save object (array, dictionary, list, etc...) to a txt file.
 
     Args:
@@ -272,7 +272,11 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False):
                 filepath = filepath/'Untitled.txt'
 
     with open(str(filepath), 'w') as file:
-         file.write(json.dumps(obj))
+        if prettyPrint:
+            file.write(json.dumps(obj, indent=4, sort_keys=False))
+        else:
+            file.write(json.dumps(obj))
+
     return 1
 
 

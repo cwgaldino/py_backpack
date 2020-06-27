@@ -160,6 +160,10 @@ def fwhmAreaVoigt(x, A, c, w, m):
 
     .. math:: y(x) = A \left[ m \frac{1}{\pi w} \frac{w^2}{w^2 + 4 (x-c)^2}   + (1-m) \frac{2 \sqrt{\ln(2)}}{w \sqrt{\pi}}  e^{-\frac{4 \ln(2) (x-c)^2}{w^2}} \right]
 
+    where,
+
+    .. math:: \text{amp }= \frac{A}{w} \left[ m\frac{1}{\pi} + (1-m)\frac{2\sqrt{\ln(2)}}{\sqrt{\pi}} \right]
+
     :param x: x array
     :param A: is the Area
     :param c: Center
@@ -186,6 +190,7 @@ def fwhmArctan(x, amp, c, w):
     """
 
     return amp * (np.arctan((w**-1)*(x - c)) + (np.pi/2))/np.pi
+
 
 def square(x, amp, c, w):
     r"""Square step function.

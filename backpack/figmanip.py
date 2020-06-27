@@ -7,6 +7,7 @@ Email: galdino@ifi.unicamp.br
 """
 
 # standard libraries
+import sys
 import numpy as np
 from pathlib import Path
 import copy
@@ -22,7 +23,6 @@ from matplotlib.ticker import MultipleLocator
 # backpack
 from .arraymanip import index
 
-
 def onclick(event):
 
     if event.key == 'y' or event.button == 3:
@@ -33,8 +33,8 @@ def onclick(event):
         p.communicate(input=bytes(f'{event.xdata}'.encode()))
 
     # double click (put image on clipboard)
-    if event.dblclick:
-        plt.savefig('.temporary_fig.png', dpi=250)
+    if event.dblclick or event.button == 2:
+        plt.savefig('.temporary_fig.png', dpi=300)
         p = Popen([f'xclip -selection clipboard -t image/png -i {Path.cwd()/".temporary_fig.png"}'], shell=True)  # ctrl+V
         # (Path.cwd()/".temporary_fig.png").unlink()
 
@@ -49,7 +49,7 @@ def figure(**kwargs):
     return fig
 
 
-def setFigurePosition(*args):
+def setWindowPosition(*args):
     """Change position of a maptplotlib figure on screen.
 
     Tipically, (0, 0) is the top left corner.
@@ -68,7 +68,7 @@ def setFigurePosition(*args):
         return
 
     figManager = get_current_fig_manager()
-    width,height = getFigureSize()
+    width,height = getWindowSize()
 
     try:  # tested on tKinter backend
         figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
@@ -81,8 +81,8 @@ def setFigurePosition(*args):
             warnings.warn('Backend not suported.')
 
 
-def setFigureSize(*args):
-    """Change size of a maptplotlib figure on screen.
+def setWindowSize(*args):
+    """Change the size of the window of a matplotlib figure
 
     Args:
         *args: A tuple like (width, height) or two separate width, height  values (in px).
@@ -98,7 +98,7 @@ def setFigureSize(*args):
         return
 
     figManager = get_current_fig_manager()
-    x,y = getFigurePosition()
+    x,y = getWindowPosition()
 
     try:  # tested on tKinter backend
         figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
@@ -126,7 +126,7 @@ def maximize():
             return (0, 0)
 
 
-def getFigurePosition():
+def getWindowPosition():
     """Get the position of a matplotlib position on the screen.
 
     Tipically, (0, 0) is the top left corner of your monitor.
@@ -147,8 +147,8 @@ def getFigurePosition():
             return (0, 0)
 
 
-def getFigureSize():
-    """Get the size of a matplotlib figure.
+def getWindowSize():
+    """Get the size of the window of a matplotlib figure.
 
     Returns:
         Tuple with the width and height values.
@@ -164,6 +164,12 @@ def getFigureSize():
         except AttributeError:
             warnings.warn('Backend not suported.')
             return (0, 0)
+
+
+def getFigureSize(fig=None):
+    if fig is None:
+        fig = plt.gcf()
+    return [x for x in fig.bbox_inches.get_points()[1]]
 
 
 def zoom(xinit, xfinal, fig=None, marginy=2, marginx=2):
@@ -198,7 +204,7 @@ def zoom(xinit, xfinal, fig=None, marginy=2, marginx=2):
                 warnings.warn("All data are outside of the required range. Cannot zoom.")
 
 
-def saveFigsInPDF(dirname, filename, figs='all'):
+def saveFiguresInPDF(dirname, filename, figs='all'):
     """Save multiple matplotlib figures in pdf.
 
     Args:
@@ -221,7 +227,24 @@ def saveFigsInPDF(dirname, filename, figs='all'):
         plt.savefig(str(Path(dirname)/filename), format='pdf')
 
 
-# old but useful. I do not remenber why I use these
+def cm2px(*tupl, dpi=None):
+    """Convert values from inches to px.
+
+    Args:
+        *Args: A tuple with values to convert
+
+    Returns:
+        A tuple with values converted
+    """
+    if dpi is None:
+        dpi = 100
+    inch = 2.54
+    if isinstance(tupl[0], tuple):
+        return tuple(i/inch*dpi for i in tupl[0])
+    else:
+        return tuple(i/inch*dpi for i in tupl)
+
+
 def cm2inch(*tupl):
     """Convert values from cm to inches.
 
@@ -238,6 +261,8 @@ def cm2inch(*tupl):
         return tuple(i/inch for i in tupl)
 
 
+
+# OLD ====================================================
 def plot_ruler(orientation, height=4, width=4):
     """Open matplotlib figure which can be used as a ruler.
 
