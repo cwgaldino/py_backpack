@@ -151,11 +151,12 @@ for i in range(len(ax)):
     figmanip.set_ticks(ax[i], axis='x', **ticks_default)
     figmanip.set_ticks(ax[i], axis='y', **ticks_default)
 
-# ticks properties
-# ax[0].tick_params(which='major', direction='in', top=True, right=True, labelbottom=False)
 for i in range(len(ax)):
     ax[i].tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
     ax[i].tick_params(which='minor', direction='in', top=True, right=True)
+# # remove x labels (shared x)
+# for i in range(len(ax)-1):
+#     ax[i].tick_params(which='major', direction='in', top=True, right=True, labelbottom=False)
 
 for i in range(len(ax)):
     figmanip.remove_ticks_edge(ax[i])

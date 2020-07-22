@@ -237,10 +237,8 @@ def load_string(filePath):
     Returns:
         string.
     """
-    filePath = Path(filePath)
-
-    f = open(str(filePath), 'w')
-    text = f.read(string)
+    f = Path(filePath).open()
+    text = f.read()
     f.close()
     return text
 

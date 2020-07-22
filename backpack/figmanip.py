@@ -34,8 +34,10 @@ def onclick(event):
 
     # double click (put image on clipboard)
     if event.dblclick or event.button == 2:
-        plt.savefig('.temporary_fig.png', dpi=300)
-        p = Popen([f'xclip -selection clipboard -t image/png -i {Path.cwd()/".temporary_fig.png"}'], shell=True)  # ctrl+V
+        plt.savefig('.temporary_fig.svg')
+        p = Popen([f'xclip -selection clipboard -t image/svg+xml -i {Path.cwd()/".temporary_fig.svg"}'], shell=True)  # ctrl+V
+        # plt.savefig('.temporary_fig.png', dpi=300)
+        # p = Popen([f'xclip -selection clipboard -t image/png -i {Path.cwd()/".temporary_fig.png"}'], shell=True)  # ctrl+V
         # (Path.cwd()/".temporary_fig.png").unlink()
 
     # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
@@ -227,8 +229,23 @@ def saveFiguresInPDF(dirname, filename, figs='all'):
         plt.savefig(str(Path(dirname)/filename), format='pdf')
 
 
+def cm2pt(*tupl):
+    """Convert values from cm to pt.
+
+    Args:
+        *Args: A tuple with values to convert
+
+    Returns:
+        A tuple with values converted
+    """
+    if isinstance(tupl[0], tuple):
+        return tuple(i*28.346 for i in tupl[0])
+    else:
+        return tuple(i*28.346 for i in tupl)
+
+
 def cm2px(*tupl, dpi=None):
-    """Convert values from inches to px.
+    """Convert values from cm to px.
 
     Args:
         *Args: A tuple with values to convert
@@ -282,15 +299,23 @@ def n_digits(n, max_decimal_places=5):
 
 def set_ticks(ax, axis='x', **kwargs):
     """
-    n_ticks overwrites ticks_sep
+
+    min_value
+    max_value
+    n_ticks
+    ticks_sep (n_ticks overwrites ticks_sep)
+n_minor_ticks
+fontproperties
+pad
+n_decimal_places
     ax.yaxis.set_ticks(np.arange(0.5, 11.6, 0.5), minor=True)
     """
     use_sep = False
 
     if axis == 'y':
-        ticks_showing = [y for y in ax.get_yticks() if y > ax.get_ylim()[0] and y < ax.get_ylim()[1]]
+        ticks_showing = [y for y in ax.get_yticks() if y >= ax.get_ylim()[0] and y <= ax.get_ylim()[1]]
     elif axis == 'x':
-        ticks_showing = [x for x in ax.get_xticks() if x > ax.get_xlim()[0] and x < ax.get_xlim()[1]]
+        ticks_showing = [x for x in ax.get_xticks() if x >= ax.get_xlim()[0] and x <= ax.get_xlim()[1]]
     else:
         raise ValueError("Axis must be either 'x' or 'y'.")
 
@@ -349,7 +374,8 @@ def set_ticks(ax, axis='x', **kwargs):
 
     # ticks
     if use_sep:
-        ticks   = np.arange(min_value, max_value, ticks_sep)
+        ticks   = np.arange(min_value, max_value+ticks_sep*0.1, ticks_sep)
+
     else:
         ticks   = np.linspace(min_value, max_value, n_ticks)
 
@@ -476,6 +502,10 @@ def axPos2figPos(ax, x, direction='x'):
 
     return x0 + delta*x
 
+
+# import matplotlib.patches as patches
+# rect = patches.Rectangle((16, 0), 10, 10, linewidth=4, edgecolor='r', facecolor='white', zorder=2)
+# ax.add_patch(rect)
 
 # OLD ====================================================
 def plot_ruler(orientation, height=4, width=4):
