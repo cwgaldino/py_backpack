@@ -14,29 +14,6 @@ import json
 import warnings
 import re
 
-def checkExtension(filepath, extension):
-    """Check if file has desired extension.
-
-    Args:
-        filepath (str or pathlib.Path): path to file.
-        extension (str): string extension. No need to put dot in front of it.
-
-    Returns
-        True if file has an extension and it match with `extension`. False if
-        it does not match and -1 if file does not have extension.
-    """
-    filepath = Path(filepath)
-    extension = extension.split('.')[-1]
-
-    a = filepath.name.split('.')
-    if len(a) > 1:
-        ext = a[-1]
-        return extension == ext
-    else:
-        ext = None
-        return -1
-
-
 def rename_files(filelist, pattern, newPattern, ask=True):
     """Change the filename pattern of several files.
 
@@ -101,6 +78,16 @@ def rename_files(filelist, pattern, newPattern, ask=True):
         print('Files renamed!')
     else:
         warnings.warn('Files NOT renamed.')
+
+
+def rmdir(dirpath):
+    dirpath = Path(dirpath)
+    for item in dirpath.iterdir():
+        if item.is_dir():
+            rmdir(item)
+        else:
+            item.unlink()
+    dirpath.rmdir()
 
 
 def get_filelist(dirpath='.', string='*'):
@@ -172,7 +159,7 @@ def parse_folder(dirpath='.', string='*', separator_list=['_'], reference_positi
     """
     dirpath = Path(dirpath)
 
-    file_list = get_fileList(dirpath=dirpath, string=string)
+    file_list = get_filelist(dirpath=dirpath, string=string)
 
     parsed_folder = dict()
     for element in file_list:

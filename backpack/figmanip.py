@@ -23,6 +23,22 @@ from matplotlib.ticker import AutoMinorLocator
 # backpack
 from .arraymanip import index
 
+
+def set_default_window_position(*args):
+    if len(args) > 1:
+        x = int(args[0])
+        y = int(args[1])
+    elif len(args) == 1 and len(args[0]) == 2:
+        x = int(args[0][0])
+        y = int(args[0][1])
+    else:
+        warnings.warn('Wrong input')
+        return
+
+    global p
+    p = (x, y)
+
+
 def onclick(event):
 
     if event.key == 'y' or event.button == 3:
@@ -48,6 +64,7 @@ def onclick(event):
 def figure(**kwargs):
     fig = plt.figure(**kwargs)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    setWindowPosition(p)
     return fig
 
 
@@ -174,7 +191,7 @@ def getFigureSize(fig=None):
     return [x for x in fig.bbox_inches.get_points()[1]]
 
 
-def zoom(xinit, xfinal, fig=None, marginy=2, marginx=2):
+def zoom(xinit, xfinal, fig=None, marginy=5, marginx=5):
     """pass.
     margin in percentage.
     """
@@ -206,27 +223,28 @@ def zoom(xinit, xfinal, fig=None, marginy=2, marginx=2):
                 warnings.warn("All data are outside of the required range. Cannot zoom.")
 
 
-def saveFiguresInPDF(dirname, filename, figs='all'):
+def savefigs(filepath, figs='all'):
     """Save multiple matplotlib figures in pdf.
 
     Args:
-        dirname (string or pathlib.Path): directory path
-        filename (string): filename
+        filepath (string or pathlib.Path): filepath
         figs (list, optional): list with the figure numbers to save. Use 'all' to save all.
     """
     # check extension
-    if filename.split('.')[-1] != 'pdf':
-        filename += '.pdf'
+    if Path(filepath).suffix == '.pdf':
+        pass
+    else:
+        filepath = Path(filepath).with_suffix('.pdf')
 
     if figs is 'all':
         figs = [plt.figure(n) for n in plt.get_fignums()]
-    if len(figs) > 1:
-        pp = PdfPages(str(Path(dirname)/filename))
+    elif len(figs) > 1:
+        pp = PdfPages(str(filepath))
         for fig in figs:
             fig.savefig(pp, format='pdf')
         pp.close()
     else:
-        plt.savefig(str(Path(dirname)/filename), format='pdf')
+        plt.savefig(str(filepath), format='pdf')
 
 
 def cm2pt(*tupl):
@@ -438,7 +456,6 @@ n_decimal_places
             ax.set_xlim((min_lim, max_lim), auto=False)
 
 
-
 def remove_ticks_edge(ax):
     ticks = ax.xaxis.get_major_ticks()
 
@@ -459,7 +476,6 @@ def remove_ticks_edge(ax):
     if ax.get_yticks()[-1] == ax.get_ylim()[-1]:
         ticks[-1].tick1line.set_visible(False)
         ticks[-1].tick2line.set_visible(False)
-
 
 
 def axBox2figBox(ax, points):
