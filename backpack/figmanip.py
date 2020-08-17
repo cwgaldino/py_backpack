@@ -64,7 +64,10 @@ def onclick(event):
 def figure(**kwargs):
     fig = plt.figure(**kwargs)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    setWindowPosition(p)
+    try:
+        setWindowPosition(p)
+    except NameError:
+        pass
     return fig
 
 
@@ -238,7 +241,8 @@ def savefigs(filepath, figs='all'):
 
     if figs is 'all':
         figs = [plt.figure(n) for n in plt.get_fignums()]
-    elif len(figs) > 1:
+
+    if len(figs) > 1:
         pp = PdfPages(str(filepath))
         for fig in figs:
             fig.savefig(pp, format='pdf')
