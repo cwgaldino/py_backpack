@@ -114,7 +114,7 @@ def extractFromData(x, y, ranges2extract):
 
 
 def fastPeakFit(dataX, dataY, guess_c, guess_A, guess_w, guess_offset=0,
-                initX=None, finalX=None, assimetricPeak=True):
+                initX=None, finalX=None, assimetricPeak=True, fixed_m=False):
     """
     Fit a peak with a pseudo-voigt curve.
 
@@ -144,20 +144,37 @@ def fastPeakFit(dataX, dataY, guess_c, guess_A, guess_w, guess_offset=0,
     if initX is None: initX=dataX[0]
     if finalX is None: finalX=dataX[-1]
 
-    if assimetricPeak:
-        p0 = [guess_A, guess_c, guess_w, 0.5, guess_w, 0.5, guess_offset]
-        def function2fit(x, A, c, w1, m1, w2, m2, offset):
-            f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, m1) + offset +\
-                np.heaviside(c-x, 0)*fwhmVoigt(x, A, c, w2, m2)
-            return f
-        bounds=[[0,      initX,   0,      0, 0,      0, -np.inf],
-                [np.inf, finalX,  np.inf, 1, np.inf, 1, np.inf]]
+    if not fixed_m and fixed_m != 0:
+        if assimetricPeak:
+            p0 = [guess_A, guess_c, guess_w, 0.5, guess_w, 0.5, guess_offset]
+            def function2fit(x, A, c, w1, m1, w2, m2, offset):
+                f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, m1) + offset +\
+                    np.heaviside(c-x, 0)*fwhmVoigt(x, A, c, w2, m2)
+                return f
+            bounds=[[0,      initX,   0,      0, 0,      0, -np.inf],
+                    [np.inf, finalX,  np.inf, 1, np.inf, 1, np.inf]]
+        else:
+            p0 = [guess_A, guess_c, guess_w, 0.5, guess_offset]
+            def function2fit(x, A, c, w, m, offset):
+                return fwhmVoigt(x, A, c, w, m) + offset
+            bounds=[[0,      initX,   0,      0, -np.inf],
+                    [np.inf, finalX,  np.inf, 1, np.inf]]
+
     else:
-        p0 = [guess_A, guess_c, guess_w, 0.5, guess_offset]
-        def function2fit(x, A, c, w, m, offset):
-            return fwhmVoigt(x, A, c, w, m) + offset
-        bounds=[[0,      initX,   0,      0, -np.inf],
-                [np.inf, finalX,  np.inf, 1, np.inf]]
+        if assimetricPeak:
+            p0 = [guess_A, guess_c, guess_w, guess_w, guess_offset]
+            def function2fit(x, A, c, w1, w2, offset):
+                f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, fixed_m) + offset +\
+                    np.heaviside(c-x, 0)*fwhmVoigt(x, A, c, w2, fixed_m)
+                return f
+            bounds=[[0,      initX,   0,      0, 0, -np.inf],
+                    [np.inf, finalX,  np.inf, 1, 1, np.inf]]
+        else:
+            p0 = [guess_A, guess_c, guess_w, guess_offset]
+            def function2fit(x, A, c, w, offset):
+                return fwhmVoigt(x, A, c, w, fixed_m) + offset
+            bounds=[[0,      initX,   0,      -np.inf],
+                    [np.inf, finalX,  np.inf, np.inf]]
 
     # Fit data
     x2fit, y2fit = extractFromData(dataX, dataY, [[initX, finalX],])

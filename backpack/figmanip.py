@@ -71,6 +71,26 @@ def figure(**kwargs):
     return fig
 
 
+
+def plot_pause(data_list, ax=None, pause=0.5, replace=False, **kwargs):
+
+    if ax is None:
+        fig = figure()
+        ax = fig.add_subplot(111)
+
+    for data in data_list:
+        if replace:
+            try:
+                print(curve)
+                curve[-1].set_visible(False)
+            except Exception as e: print(e)
+        curve = ax.plot(data[:, 0], data[:, 1], **kwargs)
+        plt.pause(pause)
+        key = input("Press Enter to continue or q to quit...")
+        if key == 'q':
+            break
+
+
 def setWindowPosition(*args):
     """Change position of a maptplotlib figure on screen.
 
@@ -85,6 +105,12 @@ def setWindowPosition(*args):
     elif len(args) == 1 and len(args[0]) == 2:
         x = int(args[0][0])
         y = int(args[0][1])
+    elif len(args) == 0:
+        try:
+            setWindowPosition(p)
+            return
+        except:
+            pass
     else:
         warnings.warn('Wrong input')
         return

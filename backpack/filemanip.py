@@ -90,7 +90,7 @@ def rmdir(dirpath):
     dirpath.rmdir()
 
 
-def get_filelist(dirpath='.', string='*'):
+def filelist(dirpath='.', string='*'):
     """Returns a list with all the files containg `string` in its name.
 
     Args:
@@ -105,10 +105,97 @@ def get_filelist(dirpath='.', string='*'):
 
     if '*' not in string:
         string = '*' + string + '*'
-    return list(dirpath.glob(string))
+
+    temp = list(dirpath.glob(string))
+
+    temp2 = [filepath.name for filepath in temp]
+
+    return [x for _,x in sorted(zip(temp2,temp))]
 
 
-def parse_folder(dirpath='.', string='*', separator_list=['_'], reference_position_list=[0]):
+
+def parsed_filelist(dirpath='.', string='*', ref=0, type='int'):
+    """Returns a dict where values are the file/folders paths inside dirpath.
+
+    The file names (or folder names) are splited at separator in a list of
+    strings. The value at reference_position will be used as key.
+
+    Args:
+        dirpath (str or pathlib.Path, optional): directory path.
+        string (str, optional): string to look for in file/folder names.
+        separator_list (list, optional): list of string that separates
+            information chuncks in file names.
+        reference_position_list (list, optional): Each chunk of information
+            (which is separated by "separator") is assigned a number based on
+            its position.
+            The first info is 0, then 1, and so on. `reference_position` is a
+            index representing which value to use as key.
+
+    Returns:
+        dictionary
+
+    Examples:
+        Suppose we have a folder with the following subfolders:
+            >folder_main
+                > 0_data0_300-temp
+
+                > 1_data_316-temp
+
+                > 2_whatever_313-temp
+
+                > 3_anotherData_20-gg
+
+                > ...
+
+        We can easily get the path to the subfolder by using:
+
+        >>> folder_main_p = parse_folder(fullpath_to_folder_main)
+        >>> folder_main_p[0]
+        fullpath_to_folder_main/0_data0_300-temp
+        >>> folder_main_p[3]
+        fullpath_to_folder_main/3_anotherData_20-gg
+
+        Or, if we want to parse regarding (300, 316, 313, and 20), we can use:
+
+        >>> folder_main_p = parse_folder(fullpath_to_folder_main, separator_list=['_', '-'], reference_position_list=[2, 0])
+        >>> folder_main_p[300]
+        fullpath_to_folder_main/0_data0_300-temp
+        >>> folder_main_p[20]
+        fullpath_to_folder_main/3_anotherData_20-gg
+    """
+    dirpath = Path(dirpath)
+
+    file_list = filelist(dirpath=dirpath, string=string)
+
+    temp = dict()
+
+    p = '[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+'
+
+    for filepath in file_list:
+        if re.search(p, filepath.name) is not None:
+            n = []
+            for catch in re.finditer(p, filepath.name):
+                n.append(catch[0])
+            if type=='int':
+                temp[int(float((n[ref])))] = filepath
+            else:
+                temp[float(n[ref])] = filepath
+
+
+    # ordering
+    a = list(temp.keys())
+    a.sort()
+
+    parsed_folder = collections.OrderedDict()
+    for key in a:
+        parsed_folder[key] = temp[key]
+
+    return parsed_folder
+
+
+
+
+def separator_parsed_filelist(dirpath='.', string='*', separator_list=['_'], reference_position_list=[0]):
     """Returns a dict where values are the file/folders paths inside dirpath.
 
     The file names (or folder names) are splited at separator in a list of
