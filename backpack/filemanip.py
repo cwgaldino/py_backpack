@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Support module for dealing with files."""
+"""Everyday use functions for file handling."""
 
 import os
 import sys
@@ -9,20 +9,31 @@ import numpy as np
 import datetime
 from copy import deepcopy
 import collections
-from .interact import query_yes_no
+from .intermanip import query_yes_no
 import json
 import warnings
 import re
 
 def rename_files(filelist, pattern, newPattern, ask=True):
-    """Change the filename pattern of several files.
+    """Change the filename pattern of files.
 
     Args:
-        filelist (list): list of filepaths. Filepaths as string or pathlib.Path object.
+        filelist (list): list of filepaths (string or pathlib.Path object).
         pattern (str): string that represents the filename pattern. Use ``{}`` to collect values within the file name.
-        newPattern (str): Each chunk of information assigned with ``{}`` in ``pattern`` is assigned a number based on its position. The first info is
+        newPattern (str): Each chunk of information assigned with ``{}`` in ``pattern``
+            is assigned a number based on its position. The first chunk is
             0, then 1, and so on. Use ``{position}`` to define the new pattern,
-            e.g., ``newPattern={0}_{2}K-{1}.dat``. Use ``\`` as scape key. Use ``{n}`` to add a index number (number of position in filelist).
+
+            Example:
+                If filename is 'data_5K-8.dat', ``pattern = {}_{}K-{}.dat`` and
+                ``newPattern={2}_{1}K.dat``. The new filename will be: '8_5K.dat'.
+
+            Tip:
+                Use ``\`` as an escape key.
+
+            Tip:
+                Use ``{n}`` in ``newPattern`` to inlcude the filenane index number (index within filelist).
+
         ask (bool): If true, it shows all the new filenames and asks for permission to rename.
     """
     permission = True
@@ -81,6 +92,11 @@ def rename_files(filelist, pattern, newPattern, ask=True):
 
 
 def rmdir(dirpath):
+    """Remove a directory and everyting in it.
+
+    Args:
+        dirpath (string or pathlib.Path): directory path.
+    """
     dirpath = Path(dirpath)
     for item in dirpath.iterdir():
         if item.is_dir():
@@ -94,7 +110,7 @@ def filelist(dirpath='.', string='*'):
     """Returns a list with all the files containg `string` in its name.
 
     Note:
-        list is sorted by the filename.
+        List is sorted by the filename.
 
     Args:
         dirpath (str or pathlib.Path, optional): list with full file directory
@@ -103,6 +119,9 @@ def filelist(dirpath='.', string='*'):
 
     Return:
         list
+
+    See Also:
+        :py:func:`parsed_filelist`
     """
     dirpath = Path(dirpath)
 
@@ -116,55 +135,25 @@ def filelist(dirpath='.', string='*'):
     return [x for _,x in sorted(zip(temp2,temp))]
 
 
-
 def parsed_filelist(dirpath='.', string='*', ref=0, type='int'):
-    """Returns a dict where values are the file/folders paths inside dirpath.
+    """Returns a filelist organized in a dictionary.
 
-    The file names (or folder names) are splited at separator in a list of
-    strings. The value at reference_position will be used as key.
+    I searches for numbers (float and int) within the filenames (or foldernames)
+    and uses them as keys for the dictionary. Filenames (or foldernames) must
+    have the same pattern.
 
     Args:
         dirpath (str or pathlib.Path, optional): directory path.
-        string (str, optional): string to look for in file/folder names.
-        separator_list (list, optional): list of string that separates
-            information chuncks in file names.
-        reference_position_list (list, optional): Each chunk of information
-            (which is separated by "separator") is assigned a number based on
-            its position.
-            The first info is 0, then 1, and so on. `reference_position` is a
-            index representing which value to use as key.
+        string (str, optional): string to filter filenames.
+        ref (int, optional): index of the reference number to be used as key.
+        type (string, optional): if 'int', dict keys are transormed in integers.
+            If 'float', dict keys are transformed into float.
 
     Returns:
-        dictionary
+        Dictionary. Dict keys are some number found in filename.
 
-    Examples:
-        Suppose we have a folder with the following subfolders:
-            >folder_main
-                > 0_data0_300-temp
-
-                > 1_data_316-temp
-
-                > 2_whatever_313-temp
-
-                > 3_anotherData_20-gg
-
-                > ...
-
-        We can easily get the path to the subfolder by using:
-
-        >>> folder_main_p = parse_folder(fullpath_to_folder_main)
-        >>> folder_main_p[0]
-        fullpath_to_folder_main/0_data0_300-temp
-        >>> folder_main_p[3]
-        fullpath_to_folder_main/3_anotherData_20-gg
-
-        Or, if we want to parse regarding (300, 316, 313, and 20), we can use:
-
-        >>> folder_main_p = parse_folder(fullpath_to_folder_main, separator_list=['_', '-'], reference_position_list=[2, 0])
-        >>> folder_main_p[300]
-        fullpath_to_folder_main/0_data0_300-temp
-        >>> folder_main_p[20]
-        fullpath_to_folder_main/3_anotherData_20-gg
+    See Also:
+        :py:func:`filelist`
     """
     dirpath = Path(dirpath)
 
@@ -196,82 +185,6 @@ def parsed_filelist(dirpath='.', string='*', ref=0, type='int'):
     return parsed_folder
 
 
-
-
-def separator_parsed_filelist(dirpath='.', string='*', separator_list=['_'], reference_position_list=[0]):
-    """Returns a dict where values are the file/folders paths inside dirpath.
-
-    The file names (or folder names) are splited at separator in a list of
-    strings. The value at reference_position will be used as key.
-
-    Args:
-        dirpath (str or pathlib.Path, optional): directory path.
-        string (str, optional): string to look for in file/folder names.
-        separator_list (list, optional): list of string that separates
-            information chuncks in file names.
-        reference_position_list (list, optional): Each chunk of information
-            (which is separated by "separator") is assigned a number based on
-            its position.
-            The first info is 0, then 1, and so on. `reference_position` is a
-            index representing which value to use as key.
-
-    Returns:
-        dictionary
-
-    Examples:
-        Suppose we have a folder with the following subfolders:
-            >folder_main
-                > 0_data0_300-temp
-
-                > 1_data_316-temp
-
-                > 2_whatever_313-temp
-
-                > 3_anotherData_20-gg
-
-                > ...
-
-        We can easily get the path to the subfolder by using:
-
-        >>> folder_main_p = parse_folder(fullpath_to_folder_main)
-        >>> folder_main_p[0]
-        fullpath_to_folder_main/0_data0_300-temp
-        >>> folder_main_p[3]
-        fullpath_to_folder_main/3_anotherData_20-gg
-
-        Or, if we want to parse regarding (300, 316, 313, and 20), we can use:
-
-        >>> folder_main_p = parse_folder(fullpath_to_folder_main, separator_list=['_', '-'], reference_position_list=[2, 0])
-        >>> folder_main_p[300]
-        fullpath_to_folder_main/0_data0_300-temp
-        >>> folder_main_p[20]
-        fullpath_to_folder_main/3_anotherData_20-gg
-    """
-    dirpath = Path(dirpath)
-
-    file_list = get_filelist(dirpath=dirpath, string=string)
-
-    parsed_folder = dict()
-    for element in file_list:
-        for separator, reference_position in zip(separator_list, reference_position_list):
-            try:
-                reference = reference.split(separator)[reference_position]
-            except:
-                reference = element.name.split(separator)[reference_position]
-        try:
-            if reference.isdigit():
-                key = int(reference)
-            else:
-                key = reference
-            parsed_folder[key] = element
-        except:
-            print('Something went wrong parsing element: ')
-            print(element)
-        del reference
-
-    return parsed_folder
-
-
 def save_string(string, filePath='./Untitled.txt', checkOverwrite=False):
     """Save string to txt file.
 
@@ -282,8 +195,8 @@ def save_string(string, filePath='./Untitled.txt', checkOverwrite=False):
         checkOverwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
 
-    Returns:
-        1 if successful or -1 otherwise.
+    See Also:
+        :py:func:`load_string`
     """
     filePath = Path(filePath)
 
@@ -293,8 +206,8 @@ def save_string(string, filePath='./Untitled.txt', checkOverwrite=False):
                 if query_yes_no('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
                     pass
                 else:
-                    warnings.warn('filemanip.saveString ERROR: File not saved.')
-                    return -1
+                    warnings.warn('File not saved.')
+                    return
             else:
                 warnings.warn('filePath is pointing to a folder. Saving file as Untitled.txt')
                 filePath = filePath/'Untitled.txt'
@@ -302,17 +215,19 @@ def save_string(string, filePath='./Untitled.txt', checkOverwrite=False):
     f = open(str(filePath), 'w')
     f.write(string)
     f.close()
-    return 1
 
 
 def load_string(filePath):
     """Load string from txt file.
 
     Args:
-        filePath (str or pathlib.Path): file path to load.
+        filePath (str or pathlib.Path): filepath to load.
 
     Returns:
         string.
+
+    See Also:
+        :py:func:`save_string`
     """
     f = Path(filePath).open()
     text = f.read()
@@ -329,8 +244,8 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=T
         checkOverwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
 
-    Returns:
-        1 if successful or -1 otherwise.
+    See Also:
+        :py:func:`load_obj`
     """
     filepath = Path(filepath)
 
@@ -341,7 +256,7 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=T
                     pass
                 else:
                     warnings.warn('File not saved because user did not allow overwriting.')
-                    return -1
+                    return
             else:
                 warnings.warn('filepath is pointing to a folder. Saving file as Untitled.txt')
                 filepath = filepath/'Untitled.txt'
@@ -351,8 +266,6 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=T
             file.write(json.dumps(obj, indent=4, sort_keys=False))
         else:
             file.write(json.dumps(obj))
-
-    return 1
 
 
 def _to_int(obj):
@@ -380,6 +293,9 @@ def load_obj(filepath, dict_keys_to_int=False):
 
     Returns:
         object.
+
+    See Also:
+        :py:func:`save_obj`
     """
     filepath = Path(filepath)
 
@@ -396,18 +312,19 @@ def load_obj(filepath, dict_keys_to_int=False):
 def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .10e', header='', footer='', delimiter=',', commentFlag='# ', newline='\n', checkOverwrite=False):
     r"""Save an array or a dictionary in a txt file.
 
-    If obj is a dictionary, the ``col_labels`` are the keys of obj.
+    If obj is a dictionary, ``col_labels`` are the keys of the dictionary.
 
     Note:
-        Use ``*`` in front of a dict key to not save it to the file.
+        Use ``*`` in front of a dict key to do not save it to the file.
+
+    Warning:
+        This function has not been fully tested.
 
     Args:
         obj (dict, list, or numpy.array): data to be saved to a file.
         filepath (str or pathlib.Path, optional): path to save file.
-        col_labels (bool, optional): When obj is a dictonary, col_labels=true
+        col_labels (bool, optional): When obj is a dictonary, ``col_labels=true``
             makes the dict keys to be added to the header as column labels.
-        add2header (str, optional): string to add to the file. Use \\n for new line.
-            commentFlag is added automatically.
         data_format (string, or list, optional): If obj is a list, fmt can also
             be a list where each fmt element is associated with a column. If
             obj is a dict, fmt can also be a dict with same keys of obj. Then,
@@ -432,20 +349,17 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
             * a common fmt strings is: '%.3f' for 3 decimal places.
 
         header (str, oprional): string that will be written at the beggining of
-            the file.
+            the file (comment flag is added automatically).
         footer (str, oprional): string that will be written at the end of the
-            file.
+            file (comment flag is added automatically).
         delimiter (str, optional): The string used to separate values.
-        commentFlag (str, optional): string that indicate line is a comment.
-        newline (str, optional): string separating lines.
+        commentFlag (str, optional): string that flag comments.
+        newline (str, optional): string to indicate new lines.
         checkOverwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
 
-    Returns:
-        1 if successful and -1 otherwise.
-
     See Also:
-        :py:func:`load_data`, :py:func:`~backpack.figmanip.setFigurePosition`.
+        :py:func:`load_data`
     """
     filepath = Path(filepath)
 
@@ -456,7 +370,7 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
                     pass
                 else:
                     warnings.warn('File not saved.')
-                    return -1
+                    return
             else:
                 warnings.warn('filepath is pointing to a folder. Saving file as Untitled.txt')
                 filepath = filepath/'Untitled.txt'
@@ -478,13 +392,12 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
         obj = np.array(obj).transpose()
 
     np.savetxt(filepath, obj, fmt=data_format, delimiter=delimiter, newline=newline, header=header, footer=footer, comments=commentFlag)
-    return 1
 
 
-def _getComments(filepath, commentFlag='#', stopFlag='#'):
-    """Extract comments from text files.
+def getComments(filepath, commentFlag='#', stopFlag='#'):
+    """Return comments from text files.
 
-    Comments must be indicated at the begining of the line.
+    Comments must be indicated at the begining of the line by the comment flag.
 
     Args:
         filepath (str or pathlib.Path): fullpath to file
@@ -494,7 +407,7 @@ def _getComments(filepath, commentFlag='#', stopFlag='#'):
             file with comments not only at the beginning). If `stopFlag` is
             equal to `commentFlag` it will read from the first line with
             `commentFlag` and keep reading until `commentFlag` does not apper
-            anymore (useful to read comments at the beginning of a file.
+            anymore (useful to read comments at the beginning of a file).
 
     Returns:
         list with comments or -1 if no comment is found.
@@ -536,32 +449,31 @@ def _getComments(filepath, commentFlag='#', stopFlag='#'):
 
 
 def load_data(filepath, delimiter=',', commentFlag='#', col_labels=None, force_array=False):
-    """Load data from file saved by manipUtils.filemanip.saveDataDict.
+    """Load data from text file. Data is formated in a dictionary or array.
 
-    Actualy, it can load data from any txt file if file is minimally
-    properly formated.
+    The dictionary keys are set as the label of the corresponding data columns, where
+    the last comment line before data starts is assumed to have the labels of each data column.
+    If column labels cannot be found, data is imported as an array.
 
-    Comments must be indicated at the begining of the line and comments are
-    permited only at the begining of the file.
+    Warning:
+        This function has not been fully tested.
 
     Args:
         filepath (str or pathlib.Path): path to file
-        delimiter (str, optional): The string used to separate values.
-            By default, comma (,) is used. If whitespaces are used, any
-            consecutive whitespaces act as delimiter and columns must have the
-            same lenght. Use \t for tab.
-        commentFlag (str, optional): lines starting with commentFlag are disregarded.
+        delimiter (str, optional): The string used to separate values. If whitespaces are used,
+            consecutive whitespaces act as delimiter. Use ``\\t`` for tab.
+        commentFlag (str, optional): string indicating comments.
         col_labels (list, optional): use this if loading data from a file that does
             not have a header or if you want to change the columns labels imported
             from the file. Its lenght must have the same as the number of
-            columns in data. To avoid importing a column, use col_labels and
-            put an asterisk (*) in front of the label.
-        force_array (bool, optional): By default, load_data will return a
-            dictionary. If force_array True, it will return a array.
+            columns in data.
 
-    Returns
-        Dictionary or array. The later is used if no header is found and
-        ``col_labels`` is None.
+            Tip:
+                To avoid importing a data column, use ``col_labels`` and put an asterisk (*) in front of the corresponding label.
+        force_array (bool, optional): If ``force_array=True``, data it will be returned in a array.
+
+    Returns:
+        Dictionary or array.
 
     See Also:
         :py:func:`save_data`.
@@ -569,7 +481,7 @@ def load_data(filepath, delimiter=',', commentFlag='#', col_labels=None, force_a
     filepath = Path(filepath)
 
     # get header
-    header = _getComments(filepath, commentFlag=commentFlag, stopFlag=commentFlag)
+    header = getComments(filepath, commentFlag=commentFlag, stopFlag=commentFlag)
 
     # get data
     if delimiter is ' ':
@@ -611,8 +523,81 @@ def load_data(filepath, delimiter=',', commentFlag='#', col_labels=None, force_a
 
 
 
+# %% deprecated =========================================================================
 
 
+# def separator_parsed_filelist(dirpath='.', string='*', separator_list=['_'], reference_position_list=[0]):
+#     """Returns a dict where values are the file/folders paths inside dirpath.
+#
+#     The file names (or folder names) are splited at separator in a list of
+#     strings. The value at reference_position will be used as key.
+#
+#     Args:
+#         dirpath (str or pathlib.Path, optional): directory path.
+#         string (str, optional): string to look for in file/folder names.
+#         separator_list (list, optional): list of string that separates
+#             information chuncks in file names.
+#         reference_position_list (list, optional): Each chunk of information
+#             (which is separated by "separator") is assigned a number based on
+#             its position.
+#             The first info is 0, then 1, and so on. `reference_position` is a
+#             index representing which value to use as key.
+#
+#     Returns:
+#         dictionary
+#
+#     Examples:
+#         Suppose we have a folder with the following subfolders:
+#             >folder_main
+#                 > 0_data0_300-temp
+#
+#                 > 1_data_316-temp
+#
+#                 > 2_whatever_313-temp
+#
+#                 > 3_anotherData_20-gg
+#
+#                 > ...
+#
+#         We can easily get the path to the subfolder by using:
+#
+#         >>> folder_main_p = parse_folder(fullpath_to_folder_main)
+#         >>> folder_main_p[0]
+#         fullpath_to_folder_main/0_data0_300-temp
+#         >>> folder_main_p[3]
+#         fullpath_to_folder_main/3_anotherData_20-gg
+#
+#         Or, if we want to parse regarding (300, 316, 313, and 20), we can use:
+#
+#         >>> folder_main_p = parse_folder(fullpath_to_folder_main, separator_list=['_', '-'], reference_position_list=[2, 0])
+#         >>> folder_main_p[300]
+#         fullpath_to_folder_main/0_data0_300-temp
+#         >>> folder_main_p[20]
+#         fullpath_to_folder_main/3_anotherData_20-gg
+#     """
+#     dirpath = Path(dirpath)
+#
+#     file_list = get_filelist(dirpath=dirpath, string=string)
+#
+#     parsed_folder = dict()
+#     for element in file_list:
+#         for separator, reference_position in zip(separator_list, reference_position_list):
+#             try:
+#                 reference = reference.split(separator)[reference_position]
+#             except:
+#                 reference = element.name.split(separator)[reference_position]
+#         try:
+#             if reference.isdigit():
+#                 key = int(reference)
+#             else:
+#                 key = reference
+#             parsed_folder[key] = element
+#         except:
+#             print('Something went wrong parsing element: ')
+#             print(element)
+#         del reference
+#
+#     return parsed_folder
 
 
 
