@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Common mathematical functions and distributions."""
+"""Everyday use mathematical functions and distributions."""
 
 import numpy as np
 from scipy.special import erf
+
 
 def Gauss(x, amp, c, sigma):
     r"""Gaussian distribution.

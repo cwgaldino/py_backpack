@@ -4,5 +4,5 @@
 interact
 ==================
 
-.. automodule:: backpack.interact
+.. automodule:: backpack.intermanip
     :members:

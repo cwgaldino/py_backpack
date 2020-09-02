@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Other utilities."""
+"""Everyday use functions for user interaction."""
 
 import os
 import sys
@@ -15,15 +15,12 @@ except ModuleNotFoundError:
 def makeSound(duration=1, freq=440):
     """Make a sound.
 
-    On linux (tested on ubuntu) you need to instal sox:
-    ``sudo apt install sox``
-
-    On windows you need install python package winsound:
-    ``pip install winsound``
+    On linux (tested on ubuntu) it uses sox (``sudo apt install sox``).
+    On windows it uses the python package winsound (``pip install winsound``).
 
     Args:
-        duration (int, optional): in seconds.
-        freq (int, optional): in Hertz
+        duration (int, optional): duration in seconds.
+        freq (int, optional): frequence of sound in Hertz
     """
     uname = sys.platform.lower()
     if os.name == 'nt':
@@ -43,15 +40,13 @@ def makeSound(duration=1, freq=440):
 
 
 def sayOutLoud(message):
-    """Say out load something.
+    """Generate speech like sounds.
 
-    In ubuntu, you need to install the speech-dispatcher package: ``sudo apt-get install -y speech-dispatcher``
-
-    Warning:
-        Never tesed in other OS.
+    On Linux (tested only on ubuntu 18.04) speech-dispatcher package is necessary
+    (``sudo apt-get install -y speech-dispatcher``).
 
     Args:
-        message (str): message to say out loud.
+        message (str): message to be said out loud.
     """
     os.system('spd-say "' + str(message) + '"')
 
@@ -63,9 +58,9 @@ def query_yes_no(question, default="yes"):
         It accepts many variations of yes and no as answer, like, "y", "YES", "N", ...
 
     Args:
-        question (str): is a string that is presented to the user.
-        default ('yes', 'no' or None): is the presumed answer if the user just hits
-            <Enter>. If None an answer is required of the user.
+        question (str): string that is presented to the user.
+        default ('yes', 'no' or None): default answer if the user just hits
+            <Enter>. If None, an answer is required of the user.
 
     Returns:
         True for "yes" or False for "no".

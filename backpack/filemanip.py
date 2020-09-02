@@ -93,6 +93,9 @@ def rmdir(dirpath):
 def filelist(dirpath='.', string='*'):
     """Returns a list with all the files containg `string` in its name.
 
+    Note:
+        list is sorted by the filename.
+
     Args:
         dirpath (str or pathlib.Path, optional): list with full file directory
         paths.

@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Set of functions that eases matplotlib figure manipulation.
+"""Everyday use functions that eases matplotlib figure manipulation."""
 
-Author: Carlos Galdino
-Email: galdino@ifi.unicamp.br
-"""
 
 # standard libraries
 import sys
@@ -13,6 +10,7 @@ from pathlib import Path
 import copy
 import warnings
 from subprocess import Popen, PIPE
+import decimal
 
 # matplotlib libraries
 from matplotlib.pyplot import get_current_fig_manager
@@ -25,6 +23,11 @@ from .arraymanip import index
 
 
 def set_default_window_position(*args):
+    """Set the default window position for when :py:func:`setWindowPosition` is called.
+
+    Args:
+        *args: A tuple like (x, y) or two separate x, y values (in px).
+    """
     if len(args) > 1:
         x = int(args[0])
         y = int(args[1])
@@ -39,56 +42,97 @@ def set_default_window_position(*args):
     p = (x, y)
 
 
-def onclick(event):
+def set_onclick(format='svg', resolution=300, folder=None):
+    """Set the default format for saving figures using :py:func:`onclick()`.
 
-    if event.key == 'y' or event.button == 3:
-        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
-        p.communicate(input=bytes(f'{event.ydata}'.encode()))
+    Args:
+        format (string, optional): 'svg' or 'png'.
+        resolution (int, optional): resolution for png images in dpi.
+        folder (string or pathlib.Path): folderpath to save figures.
+    """
+
+    global onclick_fig_format, onclick_resolution, onclick_folder
+    if format == 'svg':
+        onclick_fig_format = 'svg'
+    elif format == 'png':
+        onclick_fig_format = 'png'
+        onclick_resolution = resolution
+
+    if folder is None:
+        onclick_folder = Path.cwd()
     else:
-        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
-        p.communicate(input=bytes(f'{event.xdata}'.encode()))
+        onclick_folder = Path(folder)
 
-    # double click (put image on clipboard)
-    if event.dblclick or event.button == 2:
-        plt.savefig('.temporary_fig.svg')
-        p = Popen([f'xclip -selection clipboard -t image/svg+xml -i {Path.cwd()/".temporary_fig.svg"}'], shell=True)  # ctrl+V
-        # plt.savefig('.temporary_fig.png', dpi=300)
-        # p = Popen([f'xclip -selection clipboard -t image/png -i {Path.cwd()/".temporary_fig.png"}'], shell=True)  # ctrl+V
-        # (Path.cwd()/".temporary_fig.png").unlink()
+
+def onclick(event):
+    """This function is called everytime a mouse key is pressed whitin a figure.
+
+    Right click:
+        x value is copied to the clipboard (using xsel).
+    Left click OR (y + Right click):
+        y value is copied to the clipboard (using xsel).
+    Middle click:
+        Figure is saved as svg or png in the default folder and copied to the clipboard
+        (see :py:func:`set_onclick()`).
+
+    Note:
+        The matplotlib figure must be started by :py:func:`figure`, and not
+        by the default `matplotlib.pyplot.figure() <https://matplotlib.org/3.3.1/api/_as_gen/matplotlib.pyplot.figure.html>`_ fuction.
+
+    Note:
+        This function is based on xsel and xclip and therefore works only on linux
+        machines (use ``sudo apt-get install -y xsel`` and
+        ``sudo apt-get install -y xclip`` to install xsel and xclip, respectivelly).
+    """
 
     # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
     #       ('double' if event.dblclick else 'single', event.button,
     #        event.x, event.y, event.xdata, event.ydata))
 
+    # right
+    if event.key == 'y' or event.button == 3:
+        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
+        p.communicate(input=bytes(f'{event.ydata}'.encode()))
+    else: # left
+        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
+        p.communicate(input=bytes(f'{event.xdata}'.encode()))
+
+    # double click (put image on clipboard)
+    if event.dblclick or event.button == 2:
+        global onclick_fig_format, onclick_resolution, onclick_folder
+
+        try:
+            onclick_fig_format
+        except NameError:
+            onclick_fig_format = 'svg'
+        try:
+            onclick_folder
+        except NameError:
+            onclick_folder = Path.cwd()
+        try:
+            onclick_resolution
+        except NameError:
+            onclick_resolution = 300
+
+        if onclick_fig_format == 'svg':
+            plt.savefig('.temporary_fig.svg')
+            p = Popen([f'xclip -selection clipboard -t image/svg+xml -i {onclick_folder/".temporary_fig.svg"}'], shell=True)  # ctrl+V
+
+        elif onclick_fig_format == 'png':
+            plt.savefig('.temporary_fig.png', dpi=onclick_resolution)
+            p = Popen([f'xclip -selection clipboard -t image/png -i {onclick_folder/".temporary_fig.png"}'], shell=True)  # ctrl+V
+
 
 def figure(**kwargs):
+    """Create figure object attached to :py:func:`onclick`.
+
+    Args:
+        **kwargs: kwargs are passed to ``plt.figure()``.
+    """
     fig = plt.figure(**kwargs)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    try:
-        setWindowPosition(p)
-    except NameError:
-        pass
+
     return fig
-
-
-
-def plot_pause(data_list, ax=None, pause=0.5, replace=False, **kwargs):
-
-    if ax is None:
-        fig = figure()
-        ax = fig.add_subplot(111)
-
-    for data in data_list:
-        if replace:
-            try:
-                print(curve)
-                curve[-1].set_visible(False)
-            except Exception as e: print(e)
-        curve = ax.plot(data[:, 0], data[:, 1], **kwargs)
-        plt.pause(pause)
-        key = input("Press Enter to continue or q to quit...")
-        if key == 'q':
-            break
 
 
 def setWindowPosition(*args):
@@ -107,6 +151,8 @@ def setWindowPosition(*args):
         y = int(args[0][1])
     elif len(args) == 0:
         try:
+            global p
+            print(p)
             setWindowPosition(p)
             return
         except:
@@ -116,7 +162,7 @@ def setWindowPosition(*args):
         return
 
     figManager = get_current_fig_manager()
-    width,height = getWindowSize()
+    width, height = getWindowSize()
 
     try:  # tested on tKinter backend
         figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
@@ -130,7 +176,7 @@ def setWindowPosition(*args):
 
 
 def setWindowSize(*args):
-    """Change the size of the window of a matplotlib figure
+    """Change the size of the window of a matplotlib figure.
 
     Args:
         *args: A tuple like (width, height) or two separate width, height  values (in px).
@@ -160,7 +206,7 @@ def setWindowSize(*args):
 
 
 def maximize():
-    "Maximize current fig."""
+    """Maximize current fig."""
     figManager = plt.get_current_fig_manager()
 
     try:  # tested on tKinter backend
@@ -175,7 +221,7 @@ def maximize():
 
 
 def getWindowPosition():
-    """Get the position of a matplotlib position on the screen.
+    """Return the position of a matplotlib position on the screen.
 
     Tipically, (0, 0) is the top left corner of your monitor.
 
@@ -196,7 +242,7 @@ def getWindowPosition():
 
 
 def getWindowSize():
-    """Get the size of the window of a matplotlib figure.
+    """Returns the size of the window of a matplotlib figure.
 
     Returns:
         Tuple with the width and height values.
@@ -214,15 +260,15 @@ def getWindowSize():
             return (0, 0)
 
 
-def getFigureSize(fig=None):
-    if fig is None:
-        fig = plt.gcf()
-    return [x for x in fig.bbox_inches.get_points()[1]]
+def zoom(start, stop, fig=None, marginx=5, marginy=5):
+    """Zoom up portion of a plot from start to stop.
 
-
-def zoom(xinit, xfinal, fig=None, marginy=5, marginx=5):
-    """pass.
-    margin in percentage.
+    Args:
+        start (float or int): initial x value.
+        stop (float or int): final x value.
+        fig (int, optional): number of the figure. If None, current figure is used.
+        marginx (int, optional): margin value between data and the edges of plot in percentage.
+        marginy (int, optional): margin value between data and the edges of plot in percentage.
     """
     if fig is None:
         fig = plt.gcf()
@@ -233,8 +279,8 @@ def zoom(xinit, xfinal, fig=None, marginy=5, marginx=5):
     for axis in fig.axes:
         for line in axis.get_lines():
             try:
-                ymax_temp = max(line.get_data()[1][index(line.get_data()[0], xinit): index(line.get_data()[0], xfinal)])
-                ymin_temp = min(line.get_data()[1][index(line.get_data()[0], xinit): index(line.get_data()[0], xfinal)])
+                ymax_temp = max(line.get_data()[1][index(line.get_data()[0], start): index(line.get_data()[0], stop)])
+                ymin_temp = min(line.get_data()[1][index(line.get_data()[0], start): index(line.get_data()[0], stop)])
             except ValueError:
                 warnings.warn("All points of some data are outside of the required range.")
             try:
@@ -246,18 +292,19 @@ def zoom(xinit, xfinal, fig=None, marginy=5, marginx=5):
                 m =  (ymax-ymin)*marginy/100
                 plt.ylim(ymin-m, ymax+m)
 
-                m =  (xfinal-xinit)*marginx/100
-                plt.xlim(xinit, xfinal)
+                m =  (stop-start)*marginx/100
+                plt.xlim(start, stop)
             except UnboundLocalError:
                 warnings.warn("All data are outside of the required range. Cannot zoom.")
 
 
 def savefigs(filepath, figs='all'):
-    """Save multiple matplotlib figures in pdf.
+    """Save multiple matplotlib figures in a pdf.
 
     Args:
         filepath (string or pathlib.Path): filepath
-        figs (list, optional): list with the figure numbers to save. Use 'all' to save all.
+        figs (list, optional): list with the figure numbers to save. Use 'all'
+            to save all opened figures.
     """
     # check extension
     if Path(filepath).suffix == '.pdf':
@@ -326,37 +373,60 @@ def cm2inch(*tupl):
         return tuple(i/inch for i in tupl)
 
 
-def n_decimal_places(n, max_decimal_places=5):
-    """Return the number of decimal places of n (up to 5)."""
-    try:
-        if n.is_integer():
-            return 0
-        else:
-            return len(str(np.around(n - int(n), max_decimal_places))) -2
-    except AttributeError:
-        return 0
+def n_decimal_places(number):
+    """Return the number of decimal places of a number.
+
+    Args:
+        number (float or int): number.
+    """
+
+    return abs(decimal.Decimal(str(number)).as_tuple().exponent)
 
 
-def n_digits(n, max_decimal_places=5):
-    """Return the number of digits of n."""
-    if n_decimal_places(n, max_decimal_places=5) != 0:
-        return len(str(int(np.around(n, max_decimal_places))) ) + n_decimal_places(n, max_decimal_places=5) + 1
+def n_digits(number):
+    """Return the number of digits of a number.
+
+    Args:
+        number (float or int): number.
+    """
+    if n_decimal_places(number) != 0:
+        return (len(str(int(np.around(number))) ), n_decimal_places(number))
     else:
-        return len(str(int(np.around(n, max_decimal_places))) ) + n_decimal_places(n, max_decimal_places=5)
+        return (len(str(int(np.around(number))) ), 0)
 
 
 def set_ticks(ax, axis='x', **kwargs):
-    """
+    """Set ticks of a plot.
 
-    min_value
-    max_value
-    n_ticks
-    ticks_sep (n_ticks overwrites ticks_sep)
-n_minor_ticks
-fontproperties
-pad
-n_decimal_places
-    ax.yaxis.set_ticks(np.arange(0.5, 11.6, 0.5), minor=True)
+    Args:
+        ax (matplotlib.axes.Axes): The axes of the subplot to set ticks.
+        axis (string, optional): possible values are 'x' or 'y'.
+        **kwargs:
+
+            =======================================================  =================================
+            min_value (float or int)                                 start value for ticks and plot
+            max_value (float or int)                                 stop value for ticks and plot
+            n_ticks (int)                                            Number of ticks. Ticks separation
+                                                                     is calculated accordingly and
+                                                                     this parameter overwrites
+                                                                     ticks_sep.
+            ticks_sep (float or int)                                 Ticks separation.
+            n_minor_ticks (int)                                      Number of minor ticks between
+                                                                     two major ticks.
+            fontproperties (matplotlib.font_manager.FontProperties)  Label ticks font.
+            pad (float or int)                                       Distance between plot edge and
+                                                                     the first tick
+                                                                     in terms of tick separation.
+                                                                     Tipically, must be something
+                                                                     between 0 and 1.
+            n_decimal_places (int)                                   Number of decimal places to use
+                                                                     at tick labels.
+            =======================================================  =================================
+
+    Note:
+        To set minor and major ticks 'manually' use `XAxis.set_ticks() <https://matplotlib.org/3.2.2/api/_as_gen/matplotlib.axis.XAxis.set_ticks.html>`_, for example::
+
+            ax.xaxis.set_ticks([1, 2, 3, 4, 5, 6], minor=True)
     """
     use_sep = False
 
@@ -487,6 +557,13 @@ n_decimal_places
 
 
 def remove_ticks_edge(ax):
+    """Remove ticks the fall over the edges of the plot.
+
+    This is useful when ticks are thicker than the plot edge lines.
+
+    Args:
+        ax (matplotlib.axes.Axes): axes instance.
+    """
     ticks = ax.xaxis.get_major_ticks()
 
     if ax.get_xticks()[0] == ax.get_xlim()[0]:
@@ -509,13 +586,14 @@ def remove_ticks_edge(ax):
 
 
 def axBox2figBox(ax, points):
-    """Transform bbox like ax position values to percentage fig position.
+    """Transform 'bbox like' axes position values to percentage fig position.
 
     Args:
+        ax (matplotlib.axes.Axes): axes instance.
         points (list): [x_init, y_init, x_final, y_final]
 
     Retuns:
-        list with fig positions.
+        'bbox like' figure positions.
     """
     [x_init, y_init, x_final, y_final] = points
 
@@ -527,15 +605,16 @@ def axBox2figBox(ax, points):
     return [x_init, y_init, delta_x, delta_y]
 
 
-def axPos2figPos(ax, x, direction='x'):
-    """Transform ax position values to percentage fig position.
+def axPos2figPos(ax, value, direction='x'):
+    """Transform axes position values to figure percentage position.
 
     Args:
-        x (float): x value
-        direction (string): x or y.
+        ax (matplotlib.axes.Axes): axes instance.
+        value (float): value
+        direction (string, optional): 'x' or 'y'.
 
     Retuns:
-        fig positions from 0 to 1.
+        Figure positions from 0 to 1.
     """
     if direction == 'x':
         point1 = (ax.get_xlim()[0], ax.get_position().xmin)
@@ -546,36 +625,70 @@ def axPos2figPos(ax, x, direction='x'):
     delta = (point2[1]-point1[1])/(point2[0]-point1[0])
     x0 = point2[1] - (delta*point2[0])
 
-    return x0 + delta*x
+    return x0 + delta*value
+
+# OLD ====================================================
+
+# def getFigureSize(fig=None):
+#     if fig is None:
+#         fig = plt.gcf()
+#     return [x for x in fig.bbox_inches.get_points()[1]]
+
+# def plot_pause(data_list, ax=None, pause=0.5, replace=False, **kwargs):
+#     """Call plt.plot() function and wait for keyboard input.
+#
+#     Args:
+#         data_list (list of arrays):
+#         ax
+#         plot_pause
+#         replace
+#         **kwargs: kwargs are passed to ``plt.plot()``.
+#     """
+#
+#     if ax is None:
+#         fig = figure()
+#         ax = fig.add_subplot(111)
+#
+#     for data in data_list:
+#         if replace:
+#             try:
+#                 print(curve)
+#                 curve[-1].set_visible(False)
+#             except Exception as e: print(e)
+#         curve = ax.plot(data[:, 0], data[:, 1], **kwargs)
+#         plt.pause(pause)
+#         key = input("Press Enter to continue or q to quit...")
+#         if key == 'q':
+#             break
 
 
 # import matplotlib.patches as patches
 # rect = patches.Rectangle((16, 0), 10, 10, linewidth=4, edgecolor='r', facecolor='white', zorder=2)
 # ax.add_patch(rect)
 
-# OLD ====================================================
-def plot_ruler(orientation, height=4, width=4):
-    """Open matplotlib figure which can be used as a ruler.
 
-    Ruler goes from 0 to 1.
-
-    Args:
-        orientation (string): 'v' for vertical ruler and 'h' for horizontal ruler.
-        height (float): height in cm. If orientation is 'v', width is ignored.
-        width (float): width in cm. If orientation is 'h', height is ignored.
-    """
-    aux = plt.figure()
-    aux_ax = plt.subplot(111)
-    temp = np.linspace(0, 1, 11)
-    if orientation == 'v':
-        aux.set_size_inches(1, cm2inch(height)[0])
-        aux.subplots_adjust(left=0, bottom=0, right=.001, top=1)
-        aux_ax.set_yticks(temp, minor=False)  # Major
-        aux_ax.yaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
-    else:
-        aux.set_size_inches(cm2inch(width)[0], .5)
-        aux.subplots_adjust(left=0, bottom=0, right=1, top=.01)
-        aux_ax.set_xticks(temp, minor=False)  # Major
-        aux_ax.xaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
-    aux_ax.tick_params(which='major',direction='out',top=True,left=True,right=True, labeltop=True, labelright=True)
-    aux_ax.tick_params(which='minor',direction='out',top=True,left=True,right=True)
+# def plot_ruler(orientation, height=4, width=4):
+#     """Open matplotlib figure which can be used as a ruler.
+#
+#     Ruler goes from 0 to 1.
+#
+#     Args:
+#         orientation (string): 'v' for vertical ruler and 'h' for horizontal ruler.
+#         height (float): height in cm. If orientation is 'v', width is ignored.
+#         width (float): width in cm. If orientation is 'h', height is ignored.
+#     """
+#     aux = plt.figure()
+#     aux_ax = plt.subplot(111)
+#     temp = np.linspace(0, 1, 11)
+#     if orientation == 'v':
+#         aux.set_size_inches(1, cm2inch(height)[0])
+#         aux.subplots_adjust(left=0, bottom=0, right=.001, top=1)
+#         aux_ax.set_yticks(temp, minor=False)  # Major
+#         aux_ax.yaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
+#     else:
+#         aux.set_size_inches(cm2inch(width)[0], .5)
+#         aux.subplots_adjust(left=0, bottom=0, right=1, top=.01)
+#         aux_ax.set_xticks(temp, minor=False)  # Major
+#         aux_ax.xaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
+#     aux_ax.tick_params(which='major',direction='out',top=True,left=True,right=True, labeltop=True, labelright=True)
+#     aux_ax.tick_params(which='minor',direction='out',top=True,left=True,right=True)
