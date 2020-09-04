@@ -152,7 +152,6 @@ def setWindowPosition(*args):
     elif len(args) == 0:
         try:
             global p
-            print(p)
             setWindowPosition(p)
             return
         except:

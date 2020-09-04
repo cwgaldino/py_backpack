@@ -84,11 +84,11 @@ def peak_fit(x, y, guess_c, guess_A, guess_w, guess_offset=0, fixed_m=False, sta
             fitted peak array with a linear interpolation with 100 times more data points.
         3) An array with the optimized parameters for Amplitude, Center, FWHM and offset.
     """
-    if start is None: start=dataX[0]
-    if stop is None: stop=dataX[-1]
+    if start is None: start=x[0]
+    if stop is None: stop=x[-1]
 
     if not fixed_m or fixed_m != 0:  # variable m
-        if assimetricPeak:
+        if asymmetry:
             p0 = [guess_A, guess_c, guess_w, 0.5, guess_w, 0.5, guess_offset]
             def function2fit(x, A, c, w1, m1, w2, m2, offset):
                 f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, m1) + offset +\
@@ -108,7 +108,7 @@ def peak_fit(x, y, guess_c, guess_A, guess_w, guess_offset=0, fixed_m=False, sta
             fixed_m = 1
         elif fixed_m < 0:
             fixed_m = 0
-        if assimetricPeak:
+        if asymmetry:
             p0 = [guess_A, guess_c, guess_w, guess_w, guess_offset]
             def function2fit(x, A, c, w1, w2, offset):
                 f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, fixed_m) + offset +\
@@ -124,7 +124,7 @@ def peak_fit(x, y, guess_c, guess_A, guess_w, guess_offset=0, fixed_m=False, sta
                     [np.inf, stop,  np.inf, np.inf]]
 
     # Fit data
-    x2fit, y2fit = extract(dataX, dataY, [[start, stop],])
+    x2fit, y2fit = extract(x, y, [[start, stop],])
     popt, pcov = curve_fit(function2fit, x2fit, y2fit, p0,  # sigma = sigma,
                            bounds=bounds)
 
@@ -133,12 +133,12 @@ def peak_fit(x, y, guess_c, guess_A, guess_w, guess_offset=0, fixed_m=False, sta
     arr100[:, 0] = np.linspace(x2fit[0], x2fit[-1], 100*len(x2fit))
     arr100[:, 1] = function2fit(arr100[:, 0],  *popt)
 
-    if assimetricPeak:
+    if asymmetry:
         popt_2 = (popt[0], popt[1], popt[2]/2+popt[4]/2, popt[-1])
     else:
         popt_2 = (popt[0], popt[1], popt[2], popt[-1])
 
-    return function2fit(dataX, *popt), arr100, popt_2
+    return function2fit(x, *popt), arr100, popt_2
 
 
 def shift(x, y, shift, mode='hard'):
