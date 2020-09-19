@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Support function for connecting with libreoffice Calc."""
+"""Support functions for connecting with libreoffice Calc."""
 
 # standard imports
 import numpy as np
@@ -20,12 +20,12 @@ from unotools.unohelper import convert_path_to_url
 
 # calcObject (xlsx)
 #ok
-def connect2Calc(file=None, port=8100, counter_max=5000):
+def connect(file=None, port=8100, counter_max=5000):
     """Open libreoffice and enable conection with Calc.
 
     Args:
-        file (str or pathlib.Path, optional): file to connect. If None, it will
-            open a new Calc instance.
+        file (str or pathlib.Path, optional): Filepath. If None, a
+            new Calc instance will be opened.
         port (int, optional): port for connection.
         counter_max (int, optional): Max number of tentatives to establish a
             connection.
@@ -33,14 +33,20 @@ def connect2Calc(file=None, port=8100, counter_max=5000):
     Returns:
         Calc object.
 
-        The main mathods defined for a Calc object are exemplyfied below:
+    Examples:
 
-        >>> # adds one sheet ('Sheet2') at position 1
+        Open new instance of Calc:
+
+        >>> calcObject = calc.connect()
+
+        Adds one sheet ('Sheet2') at position 1:
+
         >>> calcObject.insert_sheets_new_by_name('Sheet2', 1)
-        >>>
-        >>> # adds multiple sheets ('Sheet3' and 'Sheet4) at position 2
+
+        Add multiple sheets ('Sheet3' and 'Sheet4) at position 2:
+
         >>> calcObject.insert_multisheets_new_by_name(['Sheet3', 'Sheet4'], 2)
-        >>>
+
         >>> # Get number of sheets
         >>> print(calcObject.get_sheets_count())
         4
@@ -50,7 +56,6 @@ def connect2Calc(file=None, port=8100, counter_max=5000):
         >>> sheet1 = calcObject.get_sheet_by_name('Sheet1')
         >>> sheet2 = calcObject.get_sheet_by_index(0)
 
-        Also, use :py:func:`~backpack.figmanip.setFigurePosition`
     """
     # open libreoffice
     libreoffice = subprocess.Popen([f"soffice --nodefault --accept='socket,host=localhost,port={port};urp;'"], shell=True, close_fds=True)
@@ -61,7 +66,7 @@ def connect2Calc(file=None, port=8100, counter_max=5000):
     while connected == False:
         time.sleep(0.5)
         try:
-            context = connect(Socket('localhost', 8100))
+            context = connect(Socket('localhost', f'{port}'))
             connected = True
         except:
             counter += 1
@@ -86,56 +91,7 @@ def closeCalc(calcObject):
     return
 
 #ok
-def _findProcessIdByName(string):
-    """Get a list of all the PIDs of all the running process whose name contains
-    string.
 
-    Args:
-        string (str): string.
-    """
-
-    listOfProcessObjects = []
-
-    # Iterate over the all the running process
-    for proc in psutil.process_iter():
-       try:
-           pinfo = proc.as_dict(attrs=['pid', 'name', 'create_time'])
-           # Check if process name contains the given name string.
-           if string.lower() in pinfo['name'].lower() :
-               listOfProcessObjects.append(pinfo)
-       except (psutil.NoSuchProcess, psutil.AccessDenied , psutil.ZombieProcess):
-           pass
-
-    return listOfProcessObjects;
-
-#ok
-def _libreoffice_processes():
-    """Return a list of processes associated with libreoffice.
-
-    Note:
-        This function try to match the name of a process with names tipically
-        related with libreoffice processes ('soffice.bin' or 'oosplash').
-        Therefore, it might return processes that are not related to
-        libreoffice if their name mathces with words: 'soffice.bin'
-        and 'oosplash'."""
-    process_list = []
-    for proc in _findProcessIdByName('soffice'):
-        process_list.append(proc)
-    for proc in _findProcessIdByName('oosplash'):
-        process_list.append(proc)
-    return process_list
-
-#ok
-def kill_libreoffice_processes():
-    """Kill libreoffice processes.
-
-    Note:
-        It will close ALL processes that are related to libreoffice (processes
-        that have 'soffice.bin' or 'oosplash' in their name)."""
-
-    process_list = _libreoffice_processes()
-    for proc in process_list:
-        os.kill(proc['pid'], signal.SIGKILL)
 
 #ok
 def saveCalc(calcObject, filepath=None):

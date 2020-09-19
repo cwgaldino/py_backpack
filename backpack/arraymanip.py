@@ -178,7 +178,67 @@ def shift(x, y, shift, mode='hard'):
         return np.array(x) + shift, y
 
 
-#
+def movingaverage(array, window_size):
+    """Returns the moving average of an array.
+
+    The returned array has the same length of the original array.
+
+    Example:
+        >>> print(manip.movingaverage([0,1,2,3,4,5,6,7,8,9], 1))
+        [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
+        >>> print(manip.movingaverage([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 2))
+        [0. , 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5]
+        >>> print(manip.movingaverage([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 3))
+        [0.33333333 1. 2. 3. 4. 5. 6.  7. 8. 5.66666667]
+        >>> print(manip.movingaverage([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 4))
+        [0.25 0.75 1.5  2.5  3.5  4.5  5.5  6.5  7.5  6.  ]
+
+    Warning:
+        Note by the example that the resulting array contains boundary effects.
+
+    Args:
+        array (list or np.array): array.
+        window_size (int): number of points to average.
+
+    Returns:
+        array.
+    """
+    if window_size < 1:
+        raise ValueError('window_size must be a positive integer (> 1).')
+
+    array = np.array(array)
+    window = np.ones(int(window_size))/float(window_size)
+    return np.convolve(array, window, 'same')
+
+
+def derivative(x, y, order=1, window_size=1):
+
+    if order<0:
+        raise ValueError('order must be a positive integer.')
+
+    x = np.array(x)
+    y = np.array(y)
+
+    x_diff = np.diff(x)
+    y_diff = np.diff(y)/x_diff
+    for i in range(order-1):
+        y_diff = np.diff(y_diff)/x_diff[:len(x_diff)-(i+1)]
+
+
+    i = int(order/2)
+    f = - int(order/2)
+    if (order % 2) != 0:
+        f -= 1
+
+    if window_size>1:
+        x = movingaverage(x, window_size=window_size)
+        y_diff = movingaverage(y_diff, window_size=window_size)
+
+    return x[i: f], y_diff
+
+
+
+    
 # def increasing_monotonicity(dataX, dataY):
 #     """Returns an array sorted and monotonic.
 #

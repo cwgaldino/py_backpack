@@ -18,15 +18,3 @@ import backpack.calcmanip as calc
 
 In the future, I think to
 
-
-calcmanip
-==================
-
-On Windows.
-
-1. Go to `libreoffice website`_ () and download libreoffice.
-2. Install it
-
-
-
-.. _libreoffice website: https://www.libreoffice.org/
