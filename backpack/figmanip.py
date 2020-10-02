@@ -52,11 +52,11 @@ def set_onclick(format='svg', resolution=300, folder=None):
     """
 
     global onclick_fig_format, onclick_resolution, onclick_folder
-    if format == 'svg':
-        onclick_fig_format = 'svg'
-    elif format == 'png':
+    if format == 'png':
         onclick_fig_format = 'png'
         onclick_resolution = resolution
+    else:
+        onclick_fig_format = format
 
     if folder is None:
         onclick_folder = Path.cwd()
@@ -118,7 +118,7 @@ def onclick(event):
             plt.savefig('.temporary_fig.svg')
             p = Popen([f'xclip -selection clipboard -t image/svg+xml -i {onclick_folder/".temporary_fig.svg"}'], shell=True)  # ctrl+V
             p = Popen([f'echo {onclick_folder/".temporary_fig.svg"}  |xclip -in -selection primary -target text/uri-list'], shell=True)  # ctrl+V
-            
+
         elif onclick_fig_format == 'png':
             plt.savefig('.temporary_fig.png', dpi=onclick_resolution)
             p = Popen([f'xclip -selection clipboard -t image/png -i {onclick_folder/".temporary_fig.png"}'], shell=True)  # ctrl+V

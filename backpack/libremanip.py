@@ -4,6 +4,8 @@
 
 TO DO:
     - method to delete rows and cols
+    - method in sheet: get sheet name
+    - conditional formatting is not wroking (it seems)
 
 Used methods from unotools.component.calc.Calc:
     # 'set_rows_str', OK---

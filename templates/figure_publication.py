@@ -56,8 +56,7 @@ mpl.rcParams['svg.fonttype'] = 'none'  # Change text to text, and not paths.
 # %% ============================ Figure ======================================
 # Figure position on screen
 # figmanip.getWindowPosition()
-xPosition = 1500
-yPosition = 100
+figmanip.set_default_window_position((1280, 30))
 
 # Figure size on the paper (in cm)
 # PRB, 2 column: Column width 8.6 cm or 3 3/8 in.
@@ -67,7 +66,7 @@ height = 5
 # Use the pyplot interface for creating figures, and then use the object
 # methods for the rest
 fig = figmanip.figure(figsize=figmanip.cm2inch(width, height))
-figmanip.setWindowPosition(xPosition, yPosition)
+figmanip.setWindowPosition()
 
 # %% Axes: Create axes instance ===============================================
 number_of_lines = 1
@@ -126,9 +125,9 @@ line2, = ax[0].plot(x, y2*scale,
 
 # %% =========================== Text =========================================
 if True:
-    plt.vlines(6, -10, 7, linestyles='dotted', linewidth=1)
-    plt.hlines(-5, 0, 7, linestyles='dotted', linewidth=1)
-    plt.text(13, -6, 'text', fontproperties=font0)
+    ax[0].vlines(6, -10, 7, linestyles='dotted', linewidth=1)
+    ax[0].hlines(-5, 0, 7, linestyles='dotted', linewidth=1)
+    ax[0].text(13, -6, 'text', fontproperties=font0)
 
 # %% =========================== Axis Labels ==================================
 ax[-1].set_xlabel(r'x axis ($\mu$ unit)', fontproperties=font0, labelpad=None)
@@ -137,19 +136,29 @@ for i in range(len(ax)):
     ax[0].set_ylabel(r'y axis', fontproperties=font0, labelpad=None)
 
 # %% =========================== Axis ticks ==================================
-ticks_default = dict( min_value        = None,
-                      max_value        = None,
-                      n_ticks          = None,
-                      ticks_sep        = None,
-                      pad              = None,
-                      n_minor_ticks    = 1,
-                      n_decimal_places = None,
-                      fontproperties   = font0,
-                     )
+x_ticks_default = dict(min_value        = None,
+                       max_value        = None,
+                       n_ticks          = None,
+                       ticks_sep        = None,
+                       pad              = None,
+                       n_minor_ticks    = 1,
+                       n_decimal_places = None,
+                       fontproperties   = font0,
+                      )
+
+y_ticks_default = dict(min_value        = None,
+                       max_value        = None,
+                       n_ticks          = None,
+                       ticks_sep        = None,
+                       pad              = None,
+                       n_minor_ticks    = 1,
+                       n_decimal_places = None,
+                       fontproperties   = font0,
+                      )
 
 for i in range(len(ax)):
-    figmanip.set_ticks(ax[i], axis='x', **ticks_default)
-    figmanip.set_ticks(ax[i], axis='y', **ticks_default)
+    figmanip.set_ticks(ax[i], axis='x', **x_ticks_default)
+    figmanip.set_ticks(ax[i], axis='y', **y_ticks_default)
 
 for i in range(len(ax)):
     ax[i].tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
@@ -173,39 +182,63 @@ for i in range(len(ax)):
     leg = ax[i].legend(frameon=0, labelspacing=.1, prop=font0)
 
 # %% ======================= Inset ============================================
-ax2putInset = [ax[0], ]
-x_init      = [20, ]
-x_final     = [31, ]
-y_init      = [-8, ]
-y_final     = [-5, ]
+ax2putInset = ax[0]
+x_init      = 20
+x_final     = 31
+y_init      = -8
+y_final     = -5
 
-insets = []
 if True:
-    for i in range(len(ax2putInset)):
-        # create inset
-        insets.append(fig.add_axes(figmanip.axBox2figBox(ax2putInset[i], [x_init[i], y_init[i], x_final[i], y_final[i]])))
-        # ax_inset = fig.add_axes([0.13, 0.81, 0.17, 0.17])
-        # ax_inset = fig.add_axes(Bbox([[.25, .38], [.3, .5]]))
-        # ax_inset.set_position([.685,.32,.25,.3], which='both')
+    # create inset
+    inset = fig.add_axes(figmanip.axBox2figBox(ax2putInset, [x_init, y_init, x_final, y_final]))
+    # inset = fig.add_axes([0.13, 0.81, 0.17, 0.17])
+    # inset = fig.add_axes(Bbox([[.25, .38], [.3, .5]]))
+    # inset.set_position([.685,.32,.25,.3], which='both')
 
-        line2, = insets[i].plot(x, y,
-                              ls='-',
-                              linewidth=1,
-                              marker = 'o',
-                              markevery=2,
-                              ms=2,
-                              color='blue',
-                              markerfacecolor='blue',
-                              markeredgewidth=0.5,
-                              label='example: $y=\sin x$')
+    for line in ax2putInset.get_lines():
+        line2, = inset.plot(line.get_xdata(), line.get_ydata(),
+                              ls=line.get_linestyle(),
+                              linewidth=line.get_linewidth(),
+                              marker = line.get_marker(),
+                              markevery=line.get_markevery(),
+                              ms=line.get_markersize(),
+                              color=line.get_color(),
+                              markerfacecolor=line.get_markerfacecolor(),
+                              markeredgewidth=line.get_markeredgewidth(),
+                              label=line.get_label())
 
-    for i in range(len(insets)):
-        figmanip.set_ticks(insets[i], axis='x', **ticks_default)
-        figmanip.set_ticks(insets[i], axis='y', **ticks_default)
+    x_ticks_default = dict(min_value        = None,
+                           max_value        = None,
+                           n_ticks          = None,
+                           ticks_sep        = None,
+                           pad              = None,
+                           n_minor_ticks    = 1,
+                           n_decimal_places = None,
+                           fontproperties   = font0,
+                          )
 
-    for i in range(len(insets)):
-        insets[i].tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
-        insets[i].tick_params(which='minor', direction='in', top=True, right=True)
+    y_ticks_default = dict(min_value        = None,
+                           max_value        = None,
+                           n_ticks          = None,
+                           ticks_sep        = None,
+                           pad              = None,
+                           n_minor_ticks    = 1,
+                           n_decimal_places = None,
+                           fontproperties   = font0,
+                          )
+
+    figmanip.set_ticks(inset, axis='x', **x_ticks_default)
+    figmanip.set_ticks(inset, axis='y', **y_ticks_default)
+
+    inset.tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
+    inset.tick_params(which='minor', direction='in', top=True, right=True)
+
+    figmanip.remove_ticks_edge(inset)
+
+    # Rectangle
+    l = ax2putInset.spines['left'].get_linewidth()
+    rect = plt.Rectangle((7705.5, 0.0), 7715.5-7705.5, 0.105, linewidth=0.6, edgecolor='black', fc='none', zorder=3)
+    ax2putInset.add_patch(rect)
 
 # %% ======================== Save figure =====================================
 dirpath = '.'
