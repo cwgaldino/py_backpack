@@ -35,12 +35,15 @@ fake_sigma
 
 # standard libraries
 import copy
-import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import inspect
 import sys
 import importlib
+
+# matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 # backpack
 from .model_functions import *
@@ -52,15 +55,27 @@ from scipy.optimize import curve_fit
 from scipy.integrate import trapz
 
 last_col = 'L'
+header_row = 1
+hashtag_col = 1
+
+exp_def     = dict(linewidth=2, marker='o', markersize=8, color='black')
+guess_def   = dict(linewidth=2, linestyle='--', color='green')
+fit_def     = dict(linewidth=2, color='red')
+ties_def    = dict(marker='o', markersize=8, color='orange')
+der_def     = dict(linewidth=0, marker='o', color='black')
+der_fit_def = dict(linewidth=2, color='red')
+der_guess_def   = dict(linewidth=2, linestyle='--', color='green')
+sub_def     = dict(linewidth=1)
+
 
 def get_parameters(self,):
     # self = sheet
 
     # set # col
-    self.set_col_values(np.arange(0, self.get_last_row()-1), col=1, row_start=2)
+    self.set_col_values(np.arange(0, self.get_last_row()-1), col=hashtag_col, row_start=header_row+1)
 
     # get header and submodels
-    header = self.get_row_values(1, col_stop=last_col)
+    header = self.get_row_values(header_row, col_stop=last_col)
     submodel_col = header.index('submodel')+1
     arg_col = header.index('arg')+1
     submodel_list = self.get_col_values(submodel_col)[1:]
@@ -101,12 +116,12 @@ def update_model(self):
     self.get_parameters()
 
     # get header and submodels
-    header = self.get_row_values(1, col_stop=last_col)
+    header = self.get_row_values(header_row, col_stop=last_col)
     guess_col = header.index('guess')+1
     fitted_col = header.index('fitted')+1
     error_col = header.index('error')+1
     id_col = header.index('id')+1
-    self.set_col_values(data=['' for i in range(self.get_last_row()-1)], row_start=2, col=id_col)
+    self.set_col_values(data=['' for i in range(self.get_last_row()-1)], row_start=header_row+1, col=id_col)
 
     p = 0
     x = 0
@@ -167,20 +182,20 @@ def update_model(self):
                     if vary2 == 'n': #
                         v = list(self.parameters[submodel2link][arg2link]['guess'])[to_use_linked]
                         model_string += f'{v}, '
-                        self.set_cell_value(value='-', row=hashtag+2, col=id_col)
-                        self.set_cell_value(value=v, row=hashtag+2, col=guess_col)
-                        self.set_cell_value(value=v, row=hashtag+2, col=fitted_col)
-                        self.set_cell_value(value=0, row=hashtag+2, col=error_col)
+                        self.set_cell_value(value='-', row=hashtag+header_row+1, col=id_col)
+                        self.set_cell_value(value=v, row=hashtag+header_row+1, col=guess_col)
+                        self.set_cell_value(value=v, row=hashtag+header_row+1, col=fitted_col)
+                        self.set_cell_value(value=0, row=hashtag+header_row+1, col=error_col)
                     else:
                         if submodel2link+','+arg2link in self.linked_parameters:
                             x_temp = self.linked_parameters[submodel2link+','+arg2link]
-                            self.set_cell_value(value='x' + str(x_temp), row=hashtag+2, col=id_col)
+                            self.set_cell_value(value='x' + str(x_temp), row=hashtag+header_row+1, col=id_col)
                             self.parameters[submodel][arg]['id'][to_use] = 'x' + str(x_temp)
                             # var_string += f'x{x_temp}, '
                             model_string += f'x{x_temp}, '
                         else:
                             self.linked_parameters[submodel2link+','+arg2link] = x
-                            self.set_cell_value(value='x' + str(x), row=hashtag+2, col=id_col)
+                            self.set_cell_value(value='x' + str(x), row=hashtag+header_row+1, col=id_col)
                             self.parameters[submodel][arg]['id'][to_use] = 'x' + str(x)
                             # var_string += f'x{x}, '
                             model_string += f'x{x}, '
@@ -191,11 +206,11 @@ def update_model(self):
                 elif vary == 'n':
                     v = list(self.parameters[submodel][arg]['guess'])[to_use]
                     model_string += f'{v}, '
-                    self.set_cell_value(value='-', row=hashtag+2, col=id_col)
+                    self.set_cell_value(value='-', row=hashtag+header_row+1, col=id_col)
                     self.parameters[submodel][arg]['id'][to_use] = '-'
-                    self.set_cell_value(value=v, row=hashtag+2, col=fitted_col)
+                    self.set_cell_value(value=v, row=hashtag+header_row+1, col=fitted_col)
                     self.parameters[submodel][arg]['fitted'][to_use] = v
-                    self.set_cell_value(value=0, row=hashtag+2, col=error_col)
+                    self.set_cell_value(value=0, row=hashtag+header_row+1, col=error_col)
                     self.parameters[submodel][arg]['error'][to_use] = 0
 
 
@@ -210,12 +225,12 @@ def update_model(self):
                     try:
                         if submodel+','+arg in self.linked_parameters:
                             x_temp = self.linked_parameters[submodel+','+arg]
-                            self.set_cell_value(value='x' + str(x_temp), row=hashtag+2, col=id_col)
+                            self.set_cell_value(value='x' + str(x_temp), row=hashtag+header_row+1, col=id_col)
                             self.parameters[submodel][arg]['id'][to_use] = 'x' + str(x_temp)
                             var_string += f'x{x_temp}, '
                             model_string += f'x{x_temp}, '
                         else:
-                            self.set_cell_value(value='p' + str(p), row=hashtag+2, col=id_col)
+                            self.set_cell_value(value='p' + str(p), row=hashtag+header_row+1, col=id_col)
                             self.parameters[submodel][arg]['id'][to_use] = 'p' + str(p)
                             var_string += f'p{p}, '
                             model_string += f'p{p}, '
@@ -306,18 +321,14 @@ def update_submodels(self):
             self.submodel[submodel]['fit'] = eval(f'lambda x:' + self.submodel[submodel]['fit_string'])
 
 
-def fit(self, x, y, sigma=None, save=True):
+def fit(self, x, y, ties=None, global_sigma=1e-13, save=True):
 
     self.update_model()
 
     # fit
-    if sigma is None:
-        # self.p_fitted, self.p_cov = curve_fit(eval(self.model_string), x, y, self.p_guess, bounds=[self.p_min, self.p_max])
-        self.p_fitted, self.p_cov = curve_fit(self.model, x, y, self.p_guess, bounds=[self.p_min, self.p_max])
-    else:
-        # self.p_fitted, self.p_cov = curve_fit(eval(self.model_string), x, y, self.p_guess, sigma=sigma, bounds=[self.p_min, self.p_max])
-        self.p_fitted, self.p_cov = curve_fit(self.model, x, y, self.p_guess, sigma=sigma, bounds=[self.p_min, self.p_max])
-
+    if global_sigma is not None:
+        sigma = fake_sigma(x, global_sigma=global_sigma, sigma_specific=ties)
+    self.p_fitted, self.p_cov = curve_fit(self.model, x, y, self.p_guess, sigma=sigma, bounds=[self.p_min, self.p_max])
     self.p_error = np.sqrt(np.diag(self.p_cov))  # One standard deviation errors on the parameters
 
     # get residue
@@ -325,7 +336,7 @@ def fit(self, x, y, sigma=None, save=True):
 
     # save to sheet and self.parameter =====================================================
     # get header and submodels
-    header = self.get_row_values(1, col_stop=last_col)
+    header = self.get_row_values(header_row, col_stop=last_col)
     fitted_col = header.index('fitted')+1
     error_col = header.index('error')+1
 
@@ -359,8 +370,8 @@ def fit(self, x, y, sigma=None, save=True):
                     id = self.parameters[submodel][arg]['id'][to_use]
                     v1 = self.p_fitted[self.id_list.index(id)]
                     v2 = self.p_error[self.id_list.index(id)]
-                    self.set_cell_value(value=v1, row=hashtag+2, col=fitted_col)
-                    self.set_cell_value(value=v2, row=hashtag+2, col=error_col)
+                    self.set_cell_value(value=v1, row=hashtag+header_row+1, col=fitted_col)
+                    self.set_cell_value(value=v2, row=hashtag+header_row+1, col=error_col)
                     self.parameters[submodel][arg]['fitted'][to_use] = v1
                     self.parameters[submodel][arg]['error'][to_use] = v2
 
@@ -370,7 +381,7 @@ def fit(self, x, y, sigma=None, save=True):
         self.object_parent.save()
 
 
-def fake_sigma(x, sigma=10**-10, sigma_specific=None):
+def fake_sigma(x, global_sigma=10**-10, sigma_specific=None):
     """Build a fake sigma array which determines the uncertainty in ydata.
 
     Adaptaded from the `scipy.optimize.curve_fit() <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html>`_ documentation:
@@ -388,13 +399,13 @@ def fake_sigma(x, sigma=10**-10, sigma_specific=None):
     Returns:
         array.
     """
-    p_sigma = np.ones(len(x))*sigma
+    p_sigma = np.ones(len(x))*global_sigma
 
     if sigma_specific is not None:
         for sigma in sigma_specific:
             init = index(x, sigma[0])
             final = index(x, sigma[1])
-            p_sigma[init:final] = sigma[2]
+            p_sigma[init:final] = sigma[2]*global_sigma
 
     return p_sigma
 
@@ -402,6 +413,119 @@ def fake_sigma(x, sigma=10**-10, sigma_specific=None):
 def refresh():
 
     importlib.reload(sys.modules[__name__])
+
+
+def plot_fit(self, x, y, ax=None, show_exp=True, show_derivative=False, show_submodels=False, smoothing=10, ties=None, submodels_bkg=None, derivative_order=1, derivative_offset=None, derivative_factor=None, derivative_window_size=1):
+
+    if smoothing == 0:
+        x_smooth = x
+    elif smoothing < 1:
+        smoothing = 1
+        x_smooth = np.linspace(min(x), max(x), len(x)*smoothing)
+    else:
+        x_smooth = np.linspace(min(x), max(x), len(x)*smoothing)
+
+    if ax is None:
+        fig = figmanip.figure()
+        ax = fig.add_subplot(111)
+
+    # exp
+    if show_exp:
+        ax.plot(x, y, **exp_def, label='exp')
+
+    # ties
+    if ties is not None:
+        for pair in ties:
+            ax.plot(x[manip.index(x, pair[0]):manip.index(x, pair[1])], y[manip.index(x, pair[0]):manip.index(x, pair[1])], **ties_def)
+
+    # derivative
+    if show_derivative:
+        x_der, y_der = manip.derivative(x, y, order=derivative_order, window_size=derivative_window_size)
+
+        if derivative_factor is None:
+            derivative_factor = (max(y) - np.mean(y))/(max(y_der) - np.mean(y_der))
+        if derivative_offset is None:
+            derivative_offset = -(max(y_der*derivative_factor) - np.mean(y))
+
+        ax.plot(x_der, y_der*derivative_factor+derivative_offset, **der_def)
+
+    # fit
+    y_fit = self.model(x_smooth, *self.p_fitted)
+    ax.plot(x_smooth, y_fit, **fit_def)
+
+    if show_derivative:
+        x_fir_der, y_fit_der = manip.derivative(x_smooth, y_fit, order=derivative_order)
+        ax.plot(x_fir_der, y_fit_der*derivative_factor+derivative_offset, **der_fit_def)
+
+    # submodels
+    if show_submodels:
+        sub_colors = cm.get_cmap('Set1').colors
+        if submodels_bkg is not None:
+            bkg = self.submodel[submodels_bkg]['fit'](x_smooth)
+        else:
+            bkg=0
+        for submodel, color in zip(self.submodel, sub_colors):
+            if submodel != submodels_bkg:
+                ax.plot(x_smooth, self.submodel[submodel]['fit'](x_smooth) + bkg, **sub_def, color=color, label=submodel)
+
+    plt.legend()
+    return ax
+
+
+def plot_guess(self, x, y, ax=None, show_exp=True, show_derivative=False, show_submodels=False, smoothing=10, ties=None, submodels_bkg=None, derivative_order=1, derivative_offset=None, derivative_factor=None, derivative_window_size=1):
+
+    if smoothing == 0:
+        x_smooth = x
+    elif smoothing < 1:
+        smoothing = 1
+        x_smooth = np.linspace(min(x), max(x), len(x)*smoothing)
+    else:
+        x_smooth = np.linspace(min(x), max(x), len(x)*smoothing)
+
+    if ax is None:
+        fig = figmanip.figure()
+        ax = fig.add_subplot(111)
+
+    # exp
+    if show_exp:
+        ax.plot(x, y, **exp_def, label='exp')
+
+    # ties
+    if ties is not None:
+        for pair in ties:
+            ax.plot(x[manip.index(x, pair[0]):manip.index(x, pair[1])], y[manip.index(x, pair[0]):manip.index(x, pair[1])], **ties_def)
+
+    # derivative
+    if show_derivative:
+        x_der, y_der = manip.derivative(x, y, order=derivative_order, window_size=derivative_window_size)
+
+        if derivative_factor is None:
+            derivative_factor = (max(y) - np.mean(y))/(max(y_der) - np.mean(y_der))
+        if derivative_offset is None:
+            derivative_offset = -(max(y_der*derivative_factor) - np.mean(y))
+
+        ax.plot(x_der, y_der*derivative_factor+derivative_offset, **der_def)
+
+    # fit
+    y_guess = self.model(x_smooth, *self.p_guess)
+    ax.plot(x_smooth, y_guess, **guess_def)
+
+    if show_derivative:
+        x_fir_der, y_fit_der = manip.derivative(x_smooth, y_guess, order=derivative_order)
+        ax.plot(x_fir_der, y_fit_der*derivative_factor+derivative_offset, **der_guess_def)
+
+    # submodels
+    if show_submodels:
+        sub_colors = cm.get_cmap('Set1').colors
+        if submodels_bkg is not None:
+            bkg = self.submodel[submodels_bkg]['guess'](x_smooth)
+        else:
+            bkg=0
+        for submodel, color in zip(self.submodel, sub_colors):
+            if submodel != submodels_bkg:
+                ax.plot(x_smooth, self.submodel[submodel]['guess'](x_smooth) + bkg, **sub_def, color=color, label=submodel)
+    plt.legend()
+    return ax
 
 
 class MissingArgument(Exception):
@@ -420,6 +544,9 @@ sheet.get_parameters = get_parameters
 sheet.update_model = update_model
 sheet.update_submodels = update_submodels
 sheet.fit = fit
+sheet.plot_fit = plot_fit
+sheet.plot_guess = plot_guess
+
 
 try:
     from __main__ import *

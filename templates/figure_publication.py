@@ -77,10 +77,8 @@ gs = gridspec.GridSpec(number_of_lines, number_of_columns, height_ratios=height_
 fig.subplots_adjust(hspace=0, wspace=.3) #Set distance between subplots
 
 ax = list()
-ax.append(fig.add_subplot(gs[0]))
-for i in range(1, number_of_lines):
-    ax.append(fig.add_subplot(gs[i], sharex=ax[0]))
-
+for i in range(0, number_of_columns*number_of_lines):
+    ax.append(fig.add_subplot(gs[i]))
 # %% ================================ Plot ====================================
 x = np.linspace(0, 10*np.pi, 100)
 y = np.sin(x)
@@ -133,7 +131,7 @@ if True:
 ax[-1].set_xlabel(r'x axis ($\mu$ unit)', fontproperties=font0, labelpad=None)
 
 for i in range(len(ax)):
-    ax[0].set_ylabel(r'y axis', fontproperties=font0, labelpad=None)
+    ax[i].set_ylabel(r'y axis', fontproperties=font0, labelpad=None)
 
 # %% =========================== Axis ticks ==================================
 x_ticks_default = dict(min_value        = None,

@@ -53,7 +53,6 @@ from unotools.unohelper import convert_path_to_url
 from .intermanip import query_yes_no
 
 
-
 # %%
 
 class soffice():
@@ -382,6 +381,11 @@ class sheet():
         self.object = object
         self.object_parent = object_parent
 
+    def get_name(self):
+        return self.object.getName()
+
+    def set_name(self, name):
+        return self.object.setName(name)
 
     def get_last_row(self):
         # higher_edited_row = len(self.object.getRowDescriptions()) + self.object.queryVisibleCells().Count -1
@@ -785,6 +789,54 @@ class sheet():
         for idx, row in enumerate(range(row_start, row_start+len(cell_formatting_list))):
             for idx2, col in enumerate(range(col_start, col_start+len(cell_formatting_list[idx]))):
                 self.set_cell_formating(cell_formatting_list[idx][idx2], row=row, col=col, extra=extra)
+
+
+    def get_merged(self, ):
+        merged_ranges = []
+        #################
+        start=[]
+        stop = []
+        #################
+
+        ucf = self.object.getUniqueCellFormatRanges()
+        for ranges in ucf:
+            rgtest = ranges.getByIndex(0)
+            if rgtest.getIsMerged():
+                for rg in ranges:
+                    oCursor = rg.getSpreadsheet().createCursorByRange(rg)
+                    oCursor.collapseToMergedArea()
+                    ######################
+                    row_start = int(oCursor.getRowDescriptions()[0].split(' ')[-1])-1
+                    row_end = int(oCursor.getRowDescriptions()[-1].split(' ')[-1])-1
+                    for row in range(row_end-row_start+1):
+                        col_start = backpack.libremanip._letter2num(oCursor.getColumnDescriptions()[0].split(' ')[-1])-1
+                        col_end = backpack.libremanip._letter2num(oCursor.getColumnDescriptions()[-1].split(' ')[-1])-1
+                        for col in range(col_end-col_start+1):
+                            if oCursor.getCellByPosition(col, row).IsMerged:
+                                # print(row+row_start, col+col_start)
+                                start.append([row+row_start, col+col_start])
+                            else:
+                                stop.append([row+row_start, col+col_start])
+                                # print(f'not: {row+row_start}, {col+col_start}')
+                    ######################
+                    addr = oCursor.getRangeAddress()
+
+                    col_start = addr.StartColumn+1
+                    row_start = addr.StartRow+1
+                    col_stop = addr.EndColumn+1
+                    row_stop = addr.EndRow+1
+                    merged_ranges.append([row_start, col_start, row_stop, col_stop])
+        return merged_ranges
+
+
+    def merge(self, row_start, col_start, row_stop, col_stop):
+        row_start = _check_row_value(row_start)[0]
+        col_start = _check_col_value(col_start)[0]
+        row_stop = _check_row_value(row_stop)[0]
+        col_stop = _check_col_value(col_stop)[0]
+
+        sheet_data = self.object.get_cell_range_by_position(col_start, row_start, col_stop, row_stop)
+        sheet_data.merge(True)
 
 
 def _iterable(obj):
