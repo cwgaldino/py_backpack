@@ -42,7 +42,7 @@ def set_default_window_position(*args):
     p = (x, y)
 
 
-def set_onclick(format='svg', resolution=300, folder=None):
+def set_onclick(format='svg', resolution=300, round_x=2, round_y=2, folder=None):
     """Set the default format for saving figures using :py:func:`onclick()`.
 
     Args:
@@ -51,7 +51,7 @@ def set_onclick(format='svg', resolution=300, folder=None):
         folder (string or pathlib.Path): folderpath to save figures.
     """
 
-    global onclick_fig_format, onclick_resolution, onclick_folder
+    global onclick_fig_format, onclick_resolution, onclick_folder, onclick_round_x, onclick_round_y
     if format == 'png':
         onclick_fig_format = 'png'
         onclick_resolution = resolution
@@ -63,6 +63,15 @@ def set_onclick(format='svg', resolution=300, folder=None):
     else:
         onclick_folder = Path(folder)
 
+    if round_x is None:
+        onclick_round_x = None
+    else:
+        onclick_round_x = round_x
+
+    if round_y is None:
+        onclick_round_y = None
+    else:
+        onclick_round_y = round_y
 
 def onclick(event):
     """This function is called everytime a mouse key is pressed whitin a figure.
@@ -88,15 +97,37 @@ def onclick(event):
     # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
     #       ('double' if event.dblclick else 'single', event.button,
     #        event.x, event.y, event.xdata, event.ydata))
+    try:
+        onclick_round_y
+    except NameError:
+        onclick_round_y = 2
+
+    try:
+        onclick_round_x
+    except NameError:
+        onclick_round_x = 2
 
     # right
     if event.key == 'y' or event.button == 3:
-        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
-        p.communicate(input=bytes(f'{event.ydata}'.encode()))
+        try:
+            p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
+            if onclick_round_y is not None:
+                y = round(event.ydata, onclick_round_y)
+            else:
+                y = event.ydata
+            p.communicate(input=bytes(str(y).encode()))
+        except TypeError:
+            pass
     else: # left
-        p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
-        p.communicate(input=bytes(f'{event.xdata}'.encode()))
-
+        try:
+            p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
+            if onclick_round_y is not None:
+                x = round(event.xdata, onclick_round_x)
+            else:
+                x = event.xdata
+            p.communicate(input=bytes(str(x).encode()))
+        except TypeError:
+            pass
     # double click (put image on clipboard)
     if event.dblclick or event.button == 2:
         global onclick_fig_format, onclick_resolution, onclick_folder
@@ -126,13 +157,20 @@ def onclick(event):
 
 
 def figure(**kwargs):
-    """Create figure object attached to :py:func:`onclick`.
+    """Create figure object.
+
+    This command is the same as ``plt.figure()``, but is attached to
+    :py:func:`onclick`.
 
     Args:
         **kwargs: kwargs are passed to ``plt.figure()``.
     """
     fig = plt.figure(**kwargs)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    try:
+        setWindowPosition()
+    except NameError:
+        pass
 
     return fig
 
@@ -313,7 +351,7 @@ def savefigs(filepath, figs='all'):
     else:
         filepath = Path(filepath).with_suffix('.pdf')
 
-    if figs is 'all':
+    if figs == 'all':
         figs = [plt.figure(n) for n in plt.get_fignums()]
 
     if len(figs) > 1:

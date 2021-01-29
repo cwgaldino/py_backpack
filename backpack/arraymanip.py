@@ -21,17 +21,15 @@ def index(array, value):
     return np.argmin(np.abs(np.array(array)-value))
 
 
-def extract(x, y, ranges):
+def extract(ranges, ref, *args):
     """Returns x and y elements that fall whithin x intervals.
 
     Args:
-        x (list or array): 1d array
-        y (list or array): 1d array
-        ranges (list): a pair of x values or a list of pairs. Each pair represents
-            the start and stop of a data range.
+        ranges (list): a pair of values or a list of pairs. Each pair represents
+            the start and stop of a data range from ref.
+        ref (list): reference list.
+        args (list): lists to extract data. These lists are reduced based on ref.
 
-    Notes:
-        y is reduced based on x array.
 
     Examples:
         Use::
@@ -44,17 +42,38 @@ def extract(x, y, ranges):
         If data ranges intersept with each other, the returned data with have repeated elements.
 
     Returns:
-        Reduced x and y arrays
+        list of reduce arrays.
     """
-    x_clean = []
-    y_clean = []
+    # x_clean = []
+    # y_clean = []
+    #
+    # x = np.array(x)
+    # y = np.array(y)
+    #
+    # for xinit, xfinal in ranges:
+    #     choose_range = np.logical_and(x>xinit, x<xfinal)
+    #     x_clean.append(x[choose_range])
+    #     y_clean.append(y[choose_range])
+    #
+    # return np.hstack(x_clean), np.hstack(y_clean)
+    ref = np.array(ref)
 
-    for xinit, xfinal in ranges:
-        choose_range = np.logical_and(x>xinit, x<xfinal)
-        x_clean.append(x[choose_range])
-        y_clean.append(y[choose_range])
+    # for xinit, xfinal in ranges:
+    #     choose_range = np.logical_and(x>xinit, x<xfinal)
+    #     x_clean.append(x[choose_range])
+    #     y_clean.append(y[choose_range])
+    #
+    # return np.hstack(x_clean), np.hstack(y_clean)
 
-    return np.hstack(x_clean), np.hstack(y_clean)
+    s = []
+    for y in args:
+        y = np.array(y)
+        y_clean = []
+        for ref_init, ref_final in ranges:
+            choose_range = np.logical_and(ref>ref_init, ref<ref_final)
+            y_clean.append(y[choose_range])
+        s.append(y_clean)
+    return s
 
 
 def peak_fit(x, y, guess_c, guess_A, guess_w, guess_offset=0, fixed_m=False, start=None, stop=None, asymmetry=True):
@@ -250,7 +269,12 @@ def derivative(x, y, order=1, window_size=1):
 
     return x[i: f], y_diff
 
-
+def sort(ref, *args):
+    """Returns sorted arrays based on a reference array."""
+    s = []
+    for x in args:
+        s.append( [x1 for (y,x1) in sorted(zip(ref,x), key=lambda pair: pair[0])])
+    return s
 
 
 # def increasing_monotonicity(dataX, dataY):

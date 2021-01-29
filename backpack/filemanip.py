@@ -11,9 +11,10 @@ from copy import deepcopy
 import collections
 from .intermanip import query_yes_no
 import json
+# %%
 import warnings
 import re
-
+# %%
 def rename_files(filelist, pattern, newPattern, ask=True):
     """Change the filename pattern of files.
 
@@ -484,7 +485,7 @@ def load_data(filepath, delimiter=',', commentFlag='#', col_labels=None, force_a
     header = load_Comments(filepath, commentFlag=commentFlag, stopFlag=commentFlag)
 
     # get data
-    if delimiter is ' ':
+    if delimiter == ' ':
         delimiter = None
     data = np.genfromtxt(str(filepath), delimiter=delimiter, comments=commentFlag)
 

@@ -17,18 +17,19 @@ from matplotlib import gridspec
 # backpack
 import sys
 sys.path.append('/home/galdino/github/py-backpack')
-import backpack.figmanip as figmanip
+import backpack.figmanip as figm
+import backpack.filemanip as fm
 import importlib
-importlib.reload(figmanip)
+importlib.reload(figm)
 
-#plt.ion()
-%matplotlib qt5
+plt.ion()
+# %matplotlib qt5
 
 # %% ====================== Close all other figures ===========================
 plt.close('all')
 
 # %% =========================== Negative? ====================================
-negative = 0
+negative = False
 if negative:
     plt.style.use('dark_background')
 else:
@@ -55,8 +56,8 @@ mpl.rcParams['svg.fonttype'] = 'none'  # Change text to text, and not paths.
 
 # %% ============================ Figure ======================================
 # Figure position on screen
-# figmanip.getWindowPosition()
-figmanip.set_default_window_position((1280, 30))
+# figm.getWindowPosition()
+figm.set_default_window_position((1280, 30))
 
 # Figure size on the paper (in cm)
 # PRB, 2 column: Column width 8.6 cm or 3 3/8 in.
@@ -65,8 +66,8 @@ height = 5
 
 # Use the pyplot interface for creating figures, and then use the object
 # methods for the rest
-fig = figmanip.figure(figsize=figmanip.cm2inch(width, height))
-figmanip.setWindowPosition()
+fig = figm.figure(figsize=figm.cm2inch(width, height))
+figm.setWindowPosition()
 
 # %% Axes: Create axes instance ===============================================
 number_of_lines = 1
@@ -155,18 +156,20 @@ y_ticks_default = dict(min_value        = None,
                       )
 
 for i in range(len(ax)):
-    figmanip.set_ticks(ax[i], axis='x', **x_ticks_default)
-    figmanip.set_ticks(ax[i], axis='y', **y_ticks_default)
+    figm.set_ticks(ax[i], axis='x', **x_ticks_default)
+    figm.set_ticks(ax[i], axis='y', **y_ticks_default)
 
 for i in range(len(ax)):
     ax[i].tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
     ax[i].tick_params(which='minor', direction='in', top=True, right=True)
-# # remove x labels (shared x)
-# for i in range(len(ax)-1):
-#     ax[i].tick_params(which='major', direction='in', top=True, right=True, labelbottom=False)
+
+# remove x labels (shared x)
+if number_of_lines>1:
+    for i in range(len(ax)-number_of_columns):
+        ax[i].tick_params(which='major', direction='in', top=True, right=True, labelbottom=False)
 
 for i in range(len(ax)):
-    figmanip.remove_ticks_edge(ax[i])
+    figm.remove_ticks_edge(ax[i])
 # %% =============== Axes position on figure ==================================
 left   = 0.16
 bottom = 0.18
@@ -188,7 +191,7 @@ y_final     = -5
 
 if True:
     # create inset
-    inset = fig.add_axes(figmanip.axBox2figBox(ax2putInset, [x_init, y_init, x_final, y_final]))
+    inset = fig.add_axes(figm.axBox2figBox(ax2putInset, [x_init, y_init, x_final, y_final]))
     # inset = fig.add_axes([0.13, 0.81, 0.17, 0.17])
     # inset = fig.add_axes(Bbox([[.25, .38], [.3, .5]]))
     # inset.set_position([.685,.32,.25,.3], which='both')
@@ -225,28 +228,31 @@ if True:
                            fontproperties   = font0,
                           )
 
-    figmanip.set_ticks(inset, axis='x', **x_ticks_default)
-    figmanip.set_ticks(inset, axis='y', **y_ticks_default)
+    figm.set_ticks(inset, axis='x', **x_ticks_default)
+    figm.set_ticks(inset, axis='y', **y_ticks_default)
 
     inset.tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
     inset.tick_params(which='minor', direction='in', top=True, right=True)
 
-    figmanip.remove_ticks_edge(inset)
+    figm.remove_ticks_edge(inset)
 
     # Rectangle
     l = ax2putInset.spines['left'].get_linewidth()
-    rect = plt.Rectangle((7705.5, 0.0), 7715.5-7705.5, 0.105, linewidth=0.6, edgecolor='black', fc='none', zorder=3)
+    rect = plt.Rectangle((inset.get_xlim()[0], inset.get_ylim()[0]), inset.get_xlim()[1]-inset.get_xlim()[0], inset.get_ylim()[1]-inset.get_ylim()[0], linewidth=0.6, edgecolor='gray', fc='none', zorder=3)
     ax2putInset.add_patch(rect)
 
 # %% ======================== Save figure =====================================
 dirpath = '.'
 name_prefix = 'plot'
 
-# pdf is for fast visualization (svg is for editing on inkscape)
 if True:
     if negative:
-        plt.savefig(str(Path(dirpath) / (name_prefix + '_negative.pdf')))
-        plt.savefig(str(Path(dirpath) / (name_prefix + '_negative.svg')), transparent=False)
+        final_filepath = str(Path(dirpath) / (name_prefix + '_negative.pdf'))
+        plt.savefig(final_filepath)
+        os.system(f'pdf2svg {final_filepath} {final_filepath.replace('.pdf', '.svg')}')
+        plt.savefig(final_filepath.replace('.pdf', '.svg'), transparent=False)
     else:
-        plt.savefig(str(Path(dirpath) / (name_prefix + '_raw.pdf')))
-        plt.savefig(str(Path(dirpath) / (name_prefix + '_raw.svg')), transparent=True)
+        final_filepath = str(Path(dirpath) / (name_prefix + '_raw.pdf'))
+        plt.savefig(final_filepath)
+        os.system(f'pdf2svg {final_filepath} {final_filepath.replace('.pdf', '.svg')}')
+        plt.savefig(final_filepath.replace('.pdf', '.svg'), transparent=True)

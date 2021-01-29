@@ -2,6 +2,21 @@
 # -*- coding: utf-8 -*-
 """Support functions for manipulating Libreoffice Calc files.
 
+- Install libreoffice. Follow the instructions.
+In this case we are in Ubuntu 18.04 and libreoffice version 7.0.4
+
+tar -xvzf file
+cd folder
+cd DEBS
+sudo dpkg -i *.deb
+
+
+sudo apt-get install python3-uno  >> import uno
+pip install unotools >>>
+from unotools import Socket, connect
+from unotools.component.calc import Calc
+from unotools.unohelper import convert_path_to_url
+
 TO DO:
     - method to delete rows and cols
     - method in sheet: get sheet name
@@ -46,6 +61,7 @@ import copy
 from collections.abc import Iterable
 
 # import uno
+import sys
 from unotools import Socket, connect
 from unotools.component.calc import Calc
 from unotools.unohelper import convert_path_to_url

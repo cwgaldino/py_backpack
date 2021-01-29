@@ -47,7 +47,7 @@ import matplotlib.cm as cm
 
 # backpack
 from .model_functions import *
-from .libremanip import sheet
+from .libremanip2 import sheet
 from .arraymanip import index
 
 # fit
@@ -58,13 +58,13 @@ last_col = 'L'
 header_row = 1
 hashtag_col = 1
 
-exp_def     = dict(linewidth=2, marker='o', markersize=8, color='black')
+exp_def     = dict(linewidth=2, markersize=8, color='black')
 guess_def   = dict(linewidth=2, linestyle='--', color='green')
 fit_def     = dict(linewidth=2, color='red')
-ties_def    = dict(marker='o', markersize=8, color='orange')
+ties_def    = dict(markersize=8, color='orange')
 der_def     = dict(linewidth=0, marker='o', color='black')
 der_fit_def = dict(linewidth=2, color='red')
-der_guess_def   = dict(linewidth=2, linestyle='--', color='green')
+der_guess_def = dict(linewidth=2, linestyle='--', color='green')
 sub_def     = dict(linewidth=1)
 
 
@@ -378,7 +378,7 @@ def fit(self, x, y, ties=None, global_sigma=1e-13, save=True):
     self.update_submodels()
 
     if save:
-        self.object_parent.save()
+        self.calc.save()
 
 
 def fake_sigma(x, global_sigma=10**-10, sigma_specific=None):
@@ -405,7 +405,7 @@ def fake_sigma(x, global_sigma=10**-10, sigma_specific=None):
         for sigma in sigma_specific:
             init = index(x, sigma[0])
             final = index(x, sigma[1])
-            p_sigma[init:final] = sigma[2]*global_sigma
+            p_sigma[init:final] = global_sigma/sigma[2]
 
     return p_sigma
 
@@ -426,7 +426,7 @@ def plot_fit(self, x, y, ax=None, show_exp=True, show_derivative=False, show_sub
         x_smooth = np.linspace(min(x), max(x), len(x)*smoothing)
 
     if ax is None:
-        fig = figmanip.figure()
+        fig = figm.figure()
         ax = fig.add_subplot(111)
 
     # exp
@@ -436,11 +436,11 @@ def plot_fit(self, x, y, ax=None, show_exp=True, show_derivative=False, show_sub
     # ties
     if ties is not None:
         for pair in ties:
-            ax.plot(x[manip.index(x, pair[0]):manip.index(x, pair[1])], y[manip.index(x, pair[0]):manip.index(x, pair[1])], **ties_def)
+            ax.plot(x[am.index(x, pair[0]):am.index(x, pair[1])], y[am.index(x, pair[0]):am.index(x, pair[1])], **ties_def)
 
     # derivative
     if show_derivative:
-        x_der, y_der = manip.derivative(x, y, order=derivative_order, window_size=derivative_window_size)
+        x_der, y_der = am.derivative(x, y, order=derivative_order, window_size=derivative_window_size)
 
         if derivative_factor is None:
             derivative_factor = (max(y) - np.mean(y))/(max(y_der) - np.mean(y_der))
@@ -450,11 +450,12 @@ def plot_fit(self, x, y, ax=None, show_exp=True, show_derivative=False, show_sub
         ax.plot(x_der, y_der*derivative_factor+derivative_offset, **der_def)
 
     # fit
+    self.update_model()
     y_fit = self.model(x_smooth, *self.p_fitted)
     ax.plot(x_smooth, y_fit, **fit_def)
 
     if show_derivative:
-        x_fir_der, y_fit_der = manip.derivative(x_smooth, y_fit, order=derivative_order)
+        x_fir_der, y_fit_der = am.derivative(x_smooth, y_fit, order=derivative_order)
         ax.plot(x_fir_der, y_fit_der*derivative_factor+derivative_offset, **der_fit_def)
 
     # submodels
@@ -483,7 +484,7 @@ def plot_guess(self, x, y, ax=None, show_exp=True, show_derivative=False, show_s
         x_smooth = np.linspace(min(x), max(x), len(x)*smoothing)
 
     if ax is None:
-        fig = figmanip.figure()
+        fig = figm.figure()
         ax = fig.add_subplot(111)
 
     # exp
@@ -493,11 +494,11 @@ def plot_guess(self, x, y, ax=None, show_exp=True, show_derivative=False, show_s
     # ties
     if ties is not None:
         for pair in ties:
-            ax.plot(x[manip.index(x, pair[0]):manip.index(x, pair[1])], y[manip.index(x, pair[0]):manip.index(x, pair[1])], **ties_def)
+            ax.plot(x[am.index(x, pair[0]):am.index(x, pair[1])], y[am.index(x, pair[0]):am.index(x, pair[1])], **ties_def)
 
     # derivative
     if show_derivative:
-        x_der, y_der = manip.derivative(x, y, order=derivative_order, window_size=derivative_window_size)
+        x_der, y_der = am.derivative(x, y, order=derivative_order, window_size=derivative_window_size)
 
         if derivative_factor is None:
             derivative_factor = (max(y) - np.mean(y))/(max(y_der) - np.mean(y_der))
@@ -511,7 +512,7 @@ def plot_guess(self, x, y, ax=None, show_exp=True, show_derivative=False, show_s
     ax.plot(x_smooth, y_guess, **guess_def)
 
     if show_derivative:
-        x_fir_der, y_fit_der = manip.derivative(x_smooth, y_guess, order=derivative_order)
+        x_fir_der, y_fit_der = am.derivative(x_smooth, y_guess, order=derivative_order)
         ax.plot(x_fir_der, y_fit_der*derivative_factor+derivative_offset, **der_guess_def)
 
     # submodels
