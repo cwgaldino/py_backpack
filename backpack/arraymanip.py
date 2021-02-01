@@ -70,9 +70,9 @@ def extract(ranges, ref, *args):
         y = np.array(y)
         y_clean = []
         for ref_init, ref_final in ranges:
-            choose_range = np.logical_and(ref>ref_init, ref<ref_final)
+            choose_range = np.logical_and(ref>=ref_init, ref<=ref_final)
             y_clean.append(y[choose_range])
-        s.append(y_clean)
+        s.append(np.hstack(y_clean))
     return s
 
 

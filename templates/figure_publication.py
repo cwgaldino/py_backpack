@@ -67,7 +67,9 @@ height = 5
 # Use the pyplot interface for creating figures, and then use the object
 # methods for the rest
 fig = figm.figure(figsize=figm.cm2inch(width, height))
-figm.setWindowPosition()
+# figm.setWindowPosition()
+# figm.getWindowPosition()
+
 
 # %% Axes: Create axes instance ===============================================
 number_of_lines = 1
