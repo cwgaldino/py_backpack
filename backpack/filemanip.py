@@ -382,6 +382,8 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
 
         # col labels
         if col_labels:
+            if not header == '' and not header.endswith('\n'):
+                header += '\n'
             for key in obj2:
                 header += str(key) + f'{delimiter}'
             header = header[:-(len(delimiter))]

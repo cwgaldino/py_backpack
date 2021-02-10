@@ -206,6 +206,7 @@ def shift(x, y, shift, mode='hard'):
 
     return x, y
 
+
 def movingaverage(array, window_size, remove_boundary_effects=True):
     """Returns the moving average of an array.
 
@@ -258,16 +259,21 @@ def derivative(x, y, order=1, window_size=1):
         y_diff = np.diff(y_diff)/x_diff[:len(x_diff)-(i+1)]
 
 
-    i = int(order/2)
-    f = - int(order/2)
-    if (order % 2) != 0:
-        f -= 1
+    # i = int(order/2)
+    # f = - int(order/2)
+    # if (order % 2) == 0:
+    #     f -= 1
 
-    if window_size>1:
-        x = movingaverage(x, window_size=window_size)
-        y_diff = movingaverage(y_diff, window_size=window_size)
+    # if window_size>1:
+    #     x = movingaverage(x, window_size=window_size)
+    #     y_diff = movingaverage(y_diff, window_size=window_size)
 
-    return x[i: f], y_diff
+    # if window_size>1:
+    for i in range(order):
+        x = movingaverage(x, window_size=2)
+    # y_diff = movingaverage(y_diff, window_size=window_size)
+
+    return x, y_diff
 
 def sort(ref, *args):
     """Returns sorted arrays based on a reference array."""
