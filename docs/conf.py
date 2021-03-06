@@ -30,8 +30,15 @@ release = '0.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx_copybutton'
-]
+extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
+              'sphinx_copybutton',
+              'sphinx.ext.mathjax',
+              'sphinx.ext.githubpages',
+              'sphinx.ext.doctest',
+              'sphinx.ext.autosummary',
+              'sphinx_rtd_theme']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -47,7 +54,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'nature'
+html_theme = 'sphinx_rtd_theme'
+# html_theme = 'nature'
 # html_theme = 'classic'
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -63,3 +71,9 @@ copybutton_only_copy_prompt_lines = True
 
 # -- autodoc configuration ----------------------------------------------------
 autodoc_member_order = 'bysource'
+
+# -- mock packages ------------------------------------------------------------
+autodoc_mock_imports = ["matplotlib",
+                         "scipy",
+                         "psutil",
+                         "unotools"]

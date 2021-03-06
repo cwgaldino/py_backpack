@@ -11,6 +11,8 @@ import copy
 import warnings
 from subprocess import Popen, PIPE
 import decimal
+from collections import OrderedDict
+from bs4 import BeautifulSoup
 
 # matplotlib libraries
 from matplotlib.pyplot import get_current_fig_manager
@@ -40,6 +42,168 @@ def set_default_window_position(*args):
 
     global p
     p = (x, y)
+
+
+def setWindowPosition(*args):
+    """Change position of a maptplotlib figure on screen.
+
+    Tipically, (0, 0) is the top left corner.
+
+    Args:
+        *args: A tuple like (x, y) or two separate x, y values (in px). If None,
+            the default value defined by :py:func:`set_default_window_position`
+            will be used. If there is no defined default value, the window's
+            position will be preserved.
+
+    See Also:
+        :py:func:`getWindowPosition`
+    """
+    if len(args) > 1:
+        x = int(args[0])
+        y = int(args[1])
+    elif len(args) == 1 and len(args[0]) == 2:
+        x = int(args[0][0])
+        y = int(args[0][1])
+    elif len(args) == 0:
+        try:
+            global p
+            setWindowPosition(p)
+            return
+        except:
+            pass
+    else:
+        warnings.warn('Wrong input')
+        return
+
+    figManager = get_current_fig_manager()
+    width, height = getWindowSize()
+
+    try:  # tested on tKinter backend
+        figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
+        figManager.window.wm_geometry(figureGeometry)
+
+    except AttributeError:
+        try:  # tested on qt4 and qt5 backends
+            figManager.window.setGeometry(int(x), int(y), width, height)
+        except AttributeError:
+            warnings.warn('Backend not suported.')
+
+
+def getWindowPosition():
+    """Return the position of a matplotlib position on the screen.
+
+    Tipically, (0, 0) is the top left corner of your monitor.
+
+    Returns:
+        Tuple with the x and y position.
+
+    See Also:
+        :py:func:`setWindowPosition`
+    """
+    figManager = get_current_fig_manager()
+
+    try:  # tested under tKinter backend
+        return (figManager.window.winfo_x(), figManager.window.winfo_y())
+
+    except AttributeError:  # tested under qt4 and qt5 backends
+        try:
+            return (figManager.window.geometry().x(), figManager.window.geometry().y())
+        except AttributeError:
+            warnings.warn('Backend not suported.')
+            return (0, 0)
+
+
+def setWindowSize(*args):
+    """Change the size of the window of a matplotlib figure.
+
+    Args:
+        *args: A tuple like (width, height) or two separate width, height values (in px).
+
+    See Also:
+        :py:func:`getWindowSize`
+    """
+    if len(args) > 1:
+        width = int(args[0])
+        height = int(args[1])
+    elif len(args) == 1 and len(args[0]) == 2:
+        width = int(args[0][0])
+        height = int(args[0][1])
+    else:
+        warnings.warn('Wrong input')
+        return
+
+    figManager = get_current_fig_manager()
+    x,y = getWindowPosition()
+
+    try:  # tested on tKinter backend
+        figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
+        figManager.window.wm_geometry(figureGeometry)
+
+    except AttributeError:
+        try:  # tested on qt4 and qt5 backends
+            figManager.window.setGeometry(x, y, width, height)
+        except AttributeError:
+            warnings.warn('Backend not suported.')
+
+
+def getWindowSize():
+    """Returns the size of the window of a matplotlib figure.
+
+    Returns:
+        Tuple with the width and height values.
+
+    See Also:
+        :py:func:`setWindowSize`
+    """
+    figManager = get_current_fig_manager()
+
+    try:  # tested on tKinter backend
+        return (figManager.window.winfo_width(), figManager.window.winfo_height())
+
+    except AttributeError:  # tested on qt4 and qt5 backends
+        try:
+            return (figManager.window.geometry().width(), figManager.window.geometry().height())
+        except AttributeError:
+            warnings.warn('Backend not suported.')
+            return (0, 0)
+
+
+def maximize():
+    """Maximize current fig."""
+    figManager = plt.get_current_fig_manager()
+
+    try:  # tested on tKinter backend
+        figManager.frame.Maximize(True)
+
+    except AttributeError:  # tested on qt4 and qt5 backends
+        try:
+            figManager.window.showMaximized()
+        except AttributeError:
+            warnings.warn('Backend not suported.')
+            return (0, 0)
+
+
+def figure(**kwargs):
+    """Create figure object.
+
+    This command is the same as ``plt.figure()``, but is attaches the function
+    :py:func:`onclick` to the figure so everytime you click on the figure, it
+    calls :py:func:`onclick`.
+
+    Args:
+        **kwargs: kwargs are passed to ``plt.figure()``.
+
+    See Also:
+        :py:func:`onclick`
+    """
+    fig = plt.figure(**kwargs)
+    cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    try:
+        setWindowPosition()
+    except NameError:
+        pass
+
+    return fig
 
 
 def set_onclick(format='svg', resolution=300, round_x=2, round_y=2, folder=None):
@@ -73,8 +237,9 @@ def set_onclick(format='svg', resolution=300, round_x=2, round_y=2, folder=None)
     else:
         onclick_round_y = round_y
 
+
 def onclick(event):
-    """This function is called everytime a mouse key is pressed whitin a figure.
+    """This function is called everytime a mouse key is pressed over a figure.
 
     Right click:
         x value is copied to the clipboard (using xsel).
@@ -85,7 +250,7 @@ def onclick(event):
         (see :py:func:`set_onclick()`).
 
     Note:
-        The matplotlib figure must be started by :py:func:`figure`, and not
+        The matplotlib figure must be started by :py:func:`backpack.figmanip.figure`, and not
         by the default `matplotlib.pyplot.figure() <https://matplotlib.org/3.3.1/api/_as_gen/matplotlib.pyplot.figure.html>`_ fuction.
 
     Note:
@@ -155,159 +320,15 @@ def onclick(event):
             p = Popen([f'xclip -selection clipboard -t image/png -i {onclick_folder/".temporary_fig.png"}'], shell=True)  # ctrl+V
 
 
-
-def figure(**kwargs):
-    """Create figure object.
-
-    This command is the same as ``plt.figure()``, but is attached to
-    :py:func:`onclick`.
-
-    Args:
-        **kwargs: kwargs are passed to ``plt.figure()``.
-    """
-    fig = plt.figure(**kwargs)
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    try:
-        setWindowPosition()
-    except NameError:
-        pass
-
-    return fig
-
-
-def setWindowPosition(*args):
-    """Change position of a maptplotlib figure on screen.
-
-    Tipically, (0, 0) is the top left corner.
-
-    Args:
-        *args: A tuple like (x, y) or two separate x, y values (in px).
-    """
-    if len(args) > 1:
-        x = int(args[0])
-        y = int(args[1])
-    elif len(args) == 1 and len(args[0]) == 2:
-        x = int(args[0][0])
-        y = int(args[0][1])
-    elif len(args) == 0:
-        try:
-            global p
-            setWindowPosition(p)
-            return
-        except:
-            pass
-    else:
-        warnings.warn('Wrong input')
-        return
-
-    figManager = get_current_fig_manager()
-    width, height = getWindowSize()
-
-    try:  # tested on tKinter backend
-        figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
-        figManager.window.wm_geometry(figureGeometry)
-
-    except AttributeError:
-        try:  # tested on qt4 and qt5 backends
-            figManager.window.setGeometry(int(x), int(y), width, height)
-        except AttributeError:
-            warnings.warn('Backend not suported.')
-
-
-def setWindowSize(*args):
-    """Change the size of the window of a matplotlib figure.
-
-    Args:
-        *args: A tuple like (width, height) or two separate width, height  values (in px).
-    """
-    if len(args) > 1:
-        width = int(args[0])
-        height = int(args[1])
-    elif len(args) == 1 and len(args[0]) == 2:
-        width = int(args[0][0])
-        height = int(args[0][1])
-    else:
-        warnings.warn('Wrong input')
-        return
-
-    figManager = get_current_fig_manager()
-    x,y = getWindowPosition()
-
-    try:  # tested on tKinter backend
-        figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
-        figManager.window.wm_geometry(figureGeometry)
-
-    except AttributeError:
-        try:  # tested on qt4 and qt5 backends
-            figManager.window.setGeometry(x, y, width, height)
-        except AttributeError:
-            warnings.warn('Backend not suported.')
-
-
-def maximize():
-    """Maximize current fig."""
-    figManager = plt.get_current_fig_manager()
-
-    try:  # tested on tKinter backend
-        figManager.frame.Maximize(True)
-
-    except AttributeError:  # tested on qt4 and qt5 backends
-        try:
-            figManager.window.showMaximized()
-        except AttributeError:
-            warnings.warn('Backend not suported.')
-            return (0, 0)
-
-
-def getWindowPosition():
-    """Return the position of a matplotlib position on the screen.
-
-    Tipically, (0, 0) is the top left corner of your monitor.
-
-    Returns:
-        Tuple with the x and y position.
-    """
-    figManager = get_current_fig_manager()
-
-    try:  # tested under tKinter backend
-        return (figManager.window.winfo_x(), figManager.window.winfo_y())
-
-    except AttributeError:  # tested under qt4 and qt5 backends
-        try:
-            return (figManager.window.geometry().x(), figManager.window.geometry().y())
-        except AttributeError:
-            warnings.warn('Backend not suported.')
-            return (0, 0)
-
-
-def getWindowSize():
-    """Returns the size of the window of a matplotlib figure.
-
-    Returns:
-        Tuple with the width and height values.
-    """
-    figManager = get_current_fig_manager()
-
-    try:  # tested on tKinter backend
-        return (figManager.window.winfo_width(), figManager.window.winfo_height())
-
-    except AttributeError:  # tested on qt4 and qt5 backends
-        try:
-            return (figManager.window.geometry().width(), figManager.window.geometry().height())
-        except AttributeError:
-            warnings.warn('Backend not suported.')
-            return (0, 0)
-
-
-def zoom(start, stop, fig=None, marginx=5, marginy=5):
+def zoom(start, stop, fig=None, marginx=10, marginy=10):
     """Zoom up portion of a plot from start to stop.
 
     Args:
         start (float or int): initial x value.
         stop (float or int): final x value.
         fig (int, optional): number of the figure. If None, current figure is used.
-        marginx (int, optional): margin value between data and the edges of plot in percentage.
-        marginy (int, optional): margin value between data and the edges of plot in percentage.
+        marginx (int, optional): margin value between data and the edges of plot in percentage of the x data range.
+        marginy (int, optional): margin value between data and the edges of plot in percentage of the y data range.
     """
     if fig is None:
         fig = plt.gcf()
@@ -417,6 +438,9 @@ def n_decimal_places(number):
 
     Args:
         number (float or int): number.
+
+    Returns:
+        number of decimal places in number.
     """
 
     return abs(decimal.Decimal(str(number)).as_tuple().exponent)
@@ -427,6 +451,9 @@ def n_digits(number):
 
     Args:
         number (float or int): number.
+
+    Returns:
+        a tuple with number of digits and number of decimal places.
     """
     if n_decimal_places(number) != 0:
         return (len(str(int(np.around(number))) ), n_decimal_places(number))
@@ -442,25 +469,26 @@ def set_ticks(ax, axis='x', **kwargs):
         axis (string, optional): possible values are 'x' or 'y'.
         **kwargs:
 
-            =======================================================  =================================
-            min_value (float or int)                                 start value for ticks and plot
-            max_value (float or int)                                 stop value for ticks and plot
-            n_ticks (int)                                            Number of ticks. Ticks separation
-                                                                     is calculated accordingly and
-                                                                     this parameter overwrites
-                                                                     ticks_sep.
-            ticks_sep (float or int)                                 Ticks separation.
-            n_minor_ticks (int)                                      Number of minor ticks between
-                                                                     two major ticks.
-            fontproperties (matplotlib.font_manager.FontProperties)  Label ticks font.
-            pad (float or int)                                       Distance between plot edge and
-                                                                     the first tick
-                                                                     in terms of tick separation.
-                                                                     Tipically, must be something
-                                                                     between 0 and 1.
-            n_decimal_places (int)                                   Number of decimal places to use
-                                                                     at tick labels.
-            =======================================================  =================================
+            #. min_value (float or int)
+                start value for ticks (not the plot edge --- see ``pad``)
+            #. max_value (float or int)
+                stop value for ticks (not the plot edge --- see ``pad``)
+            #. n_ticks (int)
+                Number of ticks. Ticks separation
+                is calculated accordingly and
+                this parameter overwrites
+                ticks_sep.
+            #. ticks_sep (float or int)
+                Ticks separation.
+            #. n_minor_ticks (int)
+                Number of minor ticks between two major ticks.
+            #. fontproperties
+                Label ticks font. Use ``matplotlib.font_manager.FontProperties``.
+            #. pad (float or int)
+                Distance between plot edge and the first tick in terms of tick separation.
+                Tipically, must be something between 0 and 1.
+            #. n_decimal_places (int)
+                Number of decimal places to use for tick labels.
 
     Note:
         To set minor and major ticks 'manually' use `XAxis.set_ticks() <https://matplotlib.org/3.2.2/api/_as_gen/matplotlib.axis.XAxis.set_ticks.html>`_, for example::
@@ -596,7 +624,7 @@ def set_ticks(ax, axis='x', **kwargs):
 
 
 def remove_ticks_edge(ax):
-    """Remove ticks the fall over the edges of the plot.
+    """Remove ticks that fall over the edges of the plot.
 
     This is useful when ticks are thicker than the plot edge lines.
 
@@ -625,14 +653,14 @@ def remove_ticks_edge(ax):
 
 
 def axBox2figBox(ax, points):
-    """Transform 'bbox like' axes position values to percentage fig position.
+    """Transform 'bbox like' axis position values to percentage fig position.
 
     Args:
         ax (matplotlib.axes.Axes): axes instance.
-        points (list): [x_init, y_init, x_final, y_final]
+        points (list): list like ``[x_init, y_init, x_final, y_final]``
 
-    Retuns:
-        'bbox like' figure positions.
+    Returns:
+        'bbox like' figure positions ``[x_init, y_init, delta_x, delta_y]``.
     """
     [x_init, y_init, x_final, y_final] = points
 
@@ -645,14 +673,14 @@ def axBox2figBox(ax, points):
 
 
 def axPos2figPos(ax, value, direction='x'):
-    """Transform axes position values to figure percentage position.
+    """Transform axis position values to figure percentage position.
 
     Args:
         ax (matplotlib.axes.Axes): axes instance.
         value (float): value
         direction (string, optional): 'x' or 'y'.
 
-    Retuns:
+    Returns:
         Figure positions from 0 to 1.
     """
     if direction == 'x':
@@ -666,68 +694,132 @@ def axPos2figPos(ax, value, direction='x'):
 
     return x0 + delta*value
 
-# OLD ====================================================
 
-# def getFigureSize(fig=None):
-#     if fig is None:
-#         fig = plt.gcf()
-#     return [x for x in fig.bbox_inches.get_points()[1]]
+def ungroup(filepath, outfilepath=None):
+    """Ungroup all objects in svg files created by matplotlib.
 
-# def plot_pause(data_list, ax=None, pause=0.5, replace=False, **kwargs):
-#     """Call plt.plot() function and wait for keyboard input.
-#
-#     Args:
-#         data_list (list of arrays):
-#         ax
-#         plot_pause
-#         replace
-#         **kwargs: kwargs are passed to ``plt.plot()``.
-#     """
-#
-#     if ax is None:
-#         fig = figure()
-#         ax = fig.add_subplot(111)
-#
-#     for data in data_list:
-#         if replace:
-#             try:
-#                 print(curve)
-#                 curve[-1].set_visible(False)
-#             except Exception as e: print(e)
-#         curve = ax.plot(data[:, 0], data[:, 1], **kwargs)
-#         plt.pause(pause)
-#         key = input("Press Enter to continue or q to quit...")
-#         if key == 'q':
-#             break
+    Text with latex equations are kept grouped.
+
+    Ticks are cloned. The parent ticks will be at the left upper corner of the figure.
+
+    Args:
+        filepath (string or pathlib.Path): path to svg file.
+        outfilepath (string or pathlib.Path, optional): path for svg output file.
+            If None, it will use the input filepath and the file will be overwrited.
+
+    See Also:
+        :py:func:`soft_ungroup`
+
+    Notes:
+        Use :py:func:`soft_ungroup` to better preserve the structure
+        of the svg file in case :py:func:`ungroup` returns strange results.
+    """
+    # get soup
+    filepath = Path(filepath)
+    f = filepath.open()
+    soup = BeautifulSoup(f, features = 'xml')
+    f.close()
+
+    # file prefix
+    script_tags = soup.find_all('svg')
+    prefix = script_tags[0].prettify().split('<g')[0]
+
+    # end of file
+    endOfFile = script_tags[0].prettify().split('</g>')[-1]
+
+    # find objs
+    script_tags = soup.find_all(['use', 'path', 'def', 'text'])
+    objs = OrderedDict()  # dict.key() is the layer label, dict.value() is the layer itself
+    for i in range(len(script_tags)):
+
+        if script_tags[i].name == 'text':  # keep text with latex equations grouped
+            if 'transform' in script_tags[i].parent.attrs:
+                objs[i] = str(script_tags[i].parent.prettify())
+            else:
+                objs[i] = str(script_tags[i].prettify())
+        else:
+            # include obj
+            objs[i] = str(script_tags[i].prettify())
+
+    # prepare output
+    output = copy.copy(prefix)
+    for id in objs:
+        output += objs[id]
+    output += endOfFile
+
+    # save
+    if outfilepath is None:
+        outfilepath = filepath
+    else:
+        outfilepath = Path(outfilepath)
+    f = outfilepath.open('w')
+    f.write(output)
+    f.close()
 
 
-# import matplotlib.patches as patches
-# rect = patches.Rectangle((16, 0), 10, 10, linewidth=4, edgecolor='r', facecolor='white', zorder=2)
-# ax.add_patch(rect)
+def soft_ungroup(filepath, outfilepath=None):
+    """Ungroup objects in svg file (each object stands in a group by itself).
 
+    Args:
+        filepath (string or pathlib.Path): path to svg file.
+        outfilepath (string or pathlib.Path, optional): path for svg output file.
+            If None, it will use the input filepath and the file will be overwrited.
 
-# def plot_ruler(orientation, height=4, width=4):
-#     """Open matplotlib figure which can be used as a ruler.
-#
-#     Ruler goes from 0 to 1.
-#
-#     Args:
-#         orientation (string): 'v' for vertical ruler and 'h' for horizontal ruler.
-#         height (float): height in cm. If orientation is 'v', width is ignored.
-#         width (float): width in cm. If orientation is 'h', height is ignored.
-#     """
-#     aux = plt.figure()
-#     aux_ax = plt.subplot(111)
-#     temp = np.linspace(0, 1, 11)
-#     if orientation == 'v':
-#         aux.set_size_inches(1, cm2inch(height)[0])
-#         aux.subplots_adjust(left=0, bottom=0, right=.001, top=1)
-#         aux_ax.set_yticks(temp, minor=False)  # Major
-#         aux_ax.yaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
-#     else:
-#         aux.set_size_inches(cm2inch(width)[0], .5)
-#         aux.subplots_adjust(left=0, bottom=0, right=1, top=.01)
-#         aux_ax.set_xticks(temp, minor=False)  # Major
-#         aux_ax.xaxis.set_minor_locator(MultipleLocator(temp[1]/5))  # Minor
-#     aux_ax.tick_params(which='major',direction='out',top=True,left=True,right=True, labeltop=True, labelright=True)
-#     aux_ax.tick_params(which='minor',direction='out',top=True,left=True,right=True)
+    See Also:
+        :py:func:`ungroup`
+
+    Notes:
+        This differs from :py:func:`ungroup` as it better preserves the structure
+        of the svg file, but Objects are still kept in groups.
+    """
+    # get soup
+    filepath = Path(filepath)
+    f = filepath.open()
+    soup = BeautifulSoup(f, features = 'xml')
+    f.close()
+
+    # file prefix
+    script_tags = soup.find_all('svg')
+    prefix = script_tags[0].prettify().split('<g')[0]
+
+    # end of file
+    endOfFile = script_tags[0].prettify().split('</g>')[-1]
+
+    # find objs
+    script_tags = soup.find_all('g')
+    objs = OrderedDict()  # dict.key() is the layer label, dict.value() is the layer itself
+    for i in range(len(script_tags)):
+        if 'id' in script_tags[i].attrs:
+
+            if script_tags[i].attrs['id'].startswith(('figure', 'axes', 'xtick', 'matplotlib.axis', 'xtick', 'ytick')):
+                pass
+            else:
+                # print(script_tags[i].attrs['id'])
+                del_list = []
+                for j in range(len(script_tags[i].contents)):
+                    try:
+                        if 'id' in script_tags[i].contents[j].attrs:
+                            del_list.append(j)
+                    except AttributeError:
+                        pass
+                del_list = [x-n for n,x in enumerate(del_list)]
+                for j in del_list:
+                    del script_tags[i].contents[j]
+
+                # include obj
+                objs[script_tags[i].attrs['id']] = str(script_tags[i])#.prettify()
+
+    # prepare output
+    output = copy.copy(prefix)
+    for id in objs:
+        output += objs[id]
+    output += endOfFile
+
+    # save
+    if outfilepath is None:
+        outfilepath = filepath
+    else:
+        outfilepath = Path(outfilepath)
+    f = outfilepath.open('w')
+    f.write(output)
+    f.close()
