@@ -76,4 +76,5 @@ autodoc_member_order = 'bysource'
 autodoc_mock_imports = ["matplotlib",
                          "scipy",
                          "psutil",
-                         "unotools"]
+                         "unotools",
+                         "detect_delimiter"]
