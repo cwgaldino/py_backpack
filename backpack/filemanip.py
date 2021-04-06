@@ -310,19 +310,19 @@ def load_obj(filepath, dict_keys_to_int=False):
     return obj
 
 
-def load_Comments(filepath, commentFlag='#', stopFlag='#'):
+def load_Comments(filepath, comment_flag='#', stop_flag='#'):
     """Return comments from text files.
 
     Comments must be indicated at the begining of the line by the comment flag.
 
     Args:
         filepath (str or pathlib.Path): fullpath to file
-        commentFlag (str, optional): string that indicate line is a comment.
-        stopFlag (str, optional): string that indicates line to stop looking for
-            comments. Use `None` to read all lines in file (useful for reading
-            file with comments not only at the beginning). If `stopFlag` is
-            equal to `commentFlag` it will read from the first line with
-            `commentFlag` and keep reading until `commentFlag` does not apper
+        comment_flag (str, optional): string that indicate line is a comment.
+        stop_flag (str, optional): string that indicates line to stop looking for
+            comments, e.g. `#f`, or `#L`. Use `None` to read all lines in file (useful for reading
+            file with comments not only at the beginning). If `stop_flag` is
+            equal to `comment_flag` it will read from the first line with
+            `comment_flag` and keep reading until `comment_flag` does not apper
             anymore (useful to read comments at the beginning of a file).
 
     Returns:
@@ -330,29 +330,29 @@ def load_Comments(filepath, commentFlag='#', stopFlag='#'):
     """
     comments = []
     filepath = str(Path(filepath))
-    l = len(commentFlag)
+    l = len(comment_flag)
 
-    if stopFlag is None:
+    if stop_flag is None:
         with open(filepath) as file:
             for line in file:
-                if line[0:l] == commentFlag:
+                if line[0:l] == comment_flag:
                     comments.append(line[:])
-    elif stopFlag == commentFlag:
+    elif stop_flag == comment_flag:
         with open(filepath) as file:
             comment_started = 0
             for line in file:
-                if line[0:l] == commentFlag and comment_started == 0:
+                if line[0:l] == comment_flag and comment_started == 0:
                     comments.append(line[:])
                     comment_started = 1
-                elif line[0:l] == commentFlag and comment_started == 1:
+                elif line[0:l] == comment_flag and comment_started == 1:
                     comments.append(line[:])
-                elif line[0:l] != commentFlag and comment_started == 1:
+                elif line[0:l] != comment_flag and comment_started == 1:
                     break
     else:
         with open(fullpath) as file:
             for line in file:
-                if line[0:len(stopFlag)] != stopFlag:
-                    if line[0:len(commentFlag)] == commentFlag:
+                if line[0:len(stop_flag)] != stop_flag:
+                    if line[0:len(comment_flag)] == comment_flag:
                         comments.append(line[:])
                 else:
                     comments.append(line[:])
@@ -364,22 +364,15 @@ def load_Comments(filepath, commentFlag='#', stopFlag='#'):
         return comments[:]
 
 
-def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .10e', header='', footer='', delimiter=',', commentFlag='# ', newline='\n', checkOverwrite=False):
+def save_data(obj, filepath='./untitled.txt', add_labels=True, data_format='% .10e', header='', footer='', delimiter=', ', comment_flag='# ', newline='\n', checkOverwrite=False):
     r"""Save an array or a dictionary in a txt file.
 
-    If obj is a dictionary, ``col_labels`` are the keys of the dictionary.
-
-    Note:
-        Use ``*`` in front of a dict key to do not save it to the file.
-
-    Warning:
-        This function has not been fully tested.
-
     Args:
-        obj (dict, list, or numpy.array): data to be saved to a file.
+        obj (dict, list, or numpy.array): data to be saved to a file. If obj is
+        a dictonary, use ``*`` in front of a key to do not save it to the file.
         filepath (str or pathlib.Path, optional): path to save file.
-        col_labels (bool, optional): When obj is a dictonary, ``col_labels=true``
-            makes the dict keys to be added to the header as column labels.
+        add_labels (bool, optional): When obj is a dictonary, ``add_labels=True``
+            makes the dict keys to be added to the header as label for each data column.
         data_format (string, or list, optional): If obj is a list, fmt can also
             be a list where each fmt element is associated with a column. If
             obj is a dict, fmt can also be a dict with same keys of obj. Then,
@@ -408,7 +401,7 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
         footer (str, oprional): string that will be written at the end of the
             file (comment flag is added automatically).
         delimiter (str, optional): The string used to separate values.
-        commentFlag (str, optional): string that flag comments.
+        comment_flag (str, optional): string that flag comments.
         newline (str, optional): string to indicate new lines.
         checkOverwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
@@ -435,7 +428,7 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
         obj2 = {key: obj[key] for key in obj if str(key).startswith('*') is False}
 
         # col labels
-        if col_labels:
+        if labels:
             if not header == '' and not header.endswith('\n'):
                 header += '\n'
             for key in obj2:
@@ -448,32 +441,29 @@ def save_data(obj, filepath='./untitled.txt', col_labels=True, data_format='% .1
             obj.append(obj2[key])
         obj = np.array(obj).transpose()
 
-    np.savetxt(filepath, obj, fmt=data_format, delimiter=delimiter, newline=newline, header=header, footer=footer, comments=commentFlag)
+    np.savetxt(filepath, obj, fmt=data_format, delimiter=delimiter, newline=newline, header=header, footer=footer, comments=comment_flag)
 
 
-def load_data(filepath, delimiter=None, commentFlag='#', col_labels=None, force_array=False):
+def load_data(filepath, delimiter=None, comment_flag='#', labels=None, force_array=False):
     """Load data from text file. Data is formated in a dictionary or array.
 
     The dictionary keys are set as the label of the corresponding data columns, where
     the last comment line before data starts is assumed to have the labels of each data column.
-    If column labels cannot be found, data is imported as an array.
-
-    Warning:
-        This function has not been fully tested.
+    If column labels cannot be found, data is imported as an array. The file expects
+    comments at the begining of the file (file must not have comments elsewhere).
 
     Args:
         filepath (str or pathlib.Path): path to file
-        delimiter (str, optional): The string used to separate values. If whitespaces are used,
+        delimiter (str, optional): The string used to separate data values. If whitespaces are used,
             consecutive whitespaces act as delimiter. Use ``\\t`` for tab. If None,
             the script will read the file and try to guess the appropriate delimiter.
-        commentFlag (str, optional): string indicating comments.
-        col_labels (list, optional): use this if loading data from a file that does
-            not have a header or if you want to change the columns labels imported
-            from the file. Its lenght must have the same as the number of
-            columns in data.
-
-            Tip:
-                To avoid importing a data column, use ``col_labels`` and put an asterisk (*) in front of the corresponding label.
+            If the file has a header, and if the header has a line with the column labels, it
+            tries to guess the delimiter of this line. If it cannot, it tries
+            to use the same delimiter for the data and for the leader in the header.
+        comment_flag (str, optional): string indicating comments.
+        labels (list, optional): It forces data to be loaded as a dictionary where
+            each label is associated with a data column. Its lenght must have the same as the number of
+            columns. To avoid importing a column, put an asterisk (*) in front of the corresponding label.
         force_array (bool, optional): If ``force_array=True``, data it will be returned in a array.
 
     Returns:
@@ -484,35 +474,49 @@ def load_data(filepath, delimiter=None, commentFlag='#', col_labels=None, force_
     """
     filepath = Path(filepath)
 
-    # get header
-    header = load_Comments(filepath, commentFlag=commentFlag, stopFlag=commentFlag)
-
-    # get data
+    # guess delimiter
     if delimiter == ' ':
         delimiter = None
     elif delimiter is None:
+        header = load_Comments(filepath, comment_flag=comment_flag, stop_flag=comment_flag)
+        try: line_number = len(header)
+        except TypeError: line_number = 0
         f = open(filepath)
-        text = f.read()
+        for i, line in enumerate(f):
+            if i == line_number:
+                delimiter = detect(line)
+            elif i > line_number:
+                break
         f.close()
-        delimiter = detect(text)
-        del text
-    data = np.genfromtxt(str(filepath), delimiter=delimiter, comments=commentFlag)
+        if delimiter is None:
+            warnings.warn('Could not figure out the delimiter. Trying space.')
 
-    # col_labels
-    if col_labels is None:
-        if header == -1:
-            warnings.warn('Cannot find header. Importing an array.')
+    # get data
+    data = np.genfromtxt(str(filepath), delimiter=delimiter, comments=comment_flag)
+
+    # get labels
+    header = load_Comments(filepath, comment_flag=comment_flag, stop_flag=comment_flag)
+    if labels is None:
+        if header is False:
+            warnings.warn('Cannot find header. Importing data as an array.')
             return data
         elif force_array:
             return data
         else:
-            col_labels = header[-1].replace(commentFlag, '').strip()
-            col_labels = col_labels.replace('\n', '').split(delimiter)
+            header_line = header[-1].replace(comment_flag, '').strip()
+            header_line = header_line.replace('\n', '')
+            header_delimiter = detect(header_line)
+            labels = header_line.split(header_delimiter)
+            if len(labels) != data.shape[1]:
+                labels = header_line.split(delimiter)
+                if len(labels) != data.shape[1]:
+                    warnings.warn('Cannot find column labels. Importing data as an array.')
+                    return data
             # remove empty itens and trailing spaces
-            col_labels = [item.strip() for item in col_labels if item != '']
+            labels = [item.strip() for item in labels if item != '']
 
     # create dict
-    datadict = {col_labels[i]: data[:, i] for i in range(len(col_labels)) if not col_labels[i].startswith('*')}
+    datadict = {labels[i]: data[:, i] for i in range(len(labels)) if not labels[i].startswith('*')}
 
     # if a column returns only nan, this column is read as string
     for key in datadict:
@@ -520,7 +524,7 @@ def load_data(filepath, delimiter=None, commentFlag='#', col_labels=None, force_
             pass
         else:
             # key conversion to col number
-            col_string = col_labels.index(key)
+            col_string = labels.index(key)
             data = np.genfromtxt(filepath, delimiter=None, comments='#', usecols=[-1], dtype='S8')
             datadict[key] = [x.decode('utf-8') for x in data]
 
