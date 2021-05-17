@@ -108,6 +108,13 @@ def rmdir(dirpath):
             item.unlink()
     dirpath.rmdir()
 
+def rm(filepath):
+    """Remove a file.
+
+    Args:
+        filepath (string or pathlib.Path): filepath.
+    """
+    filepath = Path(filepath).unlink()
 
 def filelist(dirpath='.', string='*'):
     """Returns a list with all the files containg `string` in its name.
@@ -169,7 +176,7 @@ def parsed_filelist(dirpath='.', string='*', ref=0, type='int'):
     for filepath in file_list:
         if re.search(p, filepath.name) is not None:
             n = []
-            for catch in re.finditer(p, filepath.name):
+            for catch in re.finditer(p, filepath.with_suffix('').name):
                 n.append(catch[0])
             if type=='int':
                 temp[int(float((n[ref])))] = filepath
@@ -428,7 +435,7 @@ def save_data(obj, filepath='./untitled.txt', add_labels=True, data_format='% .1
         obj2 = {key: obj[key] for key in obj if str(key).startswith('*') is False}
 
         # col labels
-        if labels:
+        if add_labels:
             if not header == '' and not header.endswith('\n'):
                 header += '\n'
             for key in obj2:

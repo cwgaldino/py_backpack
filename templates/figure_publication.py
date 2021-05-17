@@ -61,6 +61,8 @@ figm.set_default_window_position((1280, 30))
 
 # Figure size on the paper (in cm)
 # PRB, 2 column: Column width 8.6 cm or 3 3/8 in.
+# PRB, 1 column: Column width 2x8.6+0.5 = 17.7 cm.
+# PRD, max figure lenght ~ 22 cm (~ 3 line caption)
 width = 8.6
 height = 5
 
@@ -79,16 +81,18 @@ shared_y = False
 height_ratios=[1]*number_of_lines
 width_ratios=[1]*number_of_columns
 
-gs = gridspec.GridSpec(number_of_lines, number_of_columns, height_ratios=height_ratios, width_ratios=width_ratios)
+hspace = .3
+wspace = .3
 if shared_x:
-    gs = gridspec.GridSpec(number_of_lines, number_of_columns, height_ratios=height_ratios, width_ratios=width_ratios,
-                            hspace=0, wspace=.3)
+    hspace = 0
 if shared_y:
-    gs = gridspec.GridSpec(number_of_lines, number_of_columns, height_ratios=height_ratios, width_ratios=width_ratios,
-                            hspace=.3, wspace=0)
-if not shared_x or not shared_y:
-    gs = gridspec.GridSpec(number_of_lines, number_of_columns, height_ratios=height_ratios, width_ratios=width_ratios,
-                            hspace=.3, wspace=.3)
+    wspace = 0
+gs = gridspec.GridSpec(number_of_lines,
+                       number_of_columns,
+                       height_ratios=height_ratios,
+                       width_ratios=width_ratios,
+                       hspace=hspace,
+                       wspace=wspace)
 
 ax = list()
 for i in range(0, number_of_columns*number_of_lines):
@@ -141,10 +145,14 @@ if True:
     ax[0].text(4.35, 8.48, 'text', fontproperties=font0)
 
 # %% =========================== Axis Labels ==================================
-ax[-1].set_xlabel(r'x axis ($\mu$ unit)', fontproperties=font0, labelpad=None)
+if number_of_lines>1 and shared_x:
+    for i in range(number_of_columns):
+        ax[-(i+1)].set_xlabel(r'R ($\AA$)', fontproperties=font0, labelpad=None)
 
-for i in range(len(ax)):
-    ax[i].set_ylabel(r'y axis', fontproperties=font0, labelpad=None)
+if number_of_columns>1 and shared_y:
+    for i in range(len(ax)):
+        if i%(number_of_columns) == 0 or i==0:
+            ax[i].set_ylabel(r'Co - O pairs (%)', fontproperties=font0, labelpad=None)
 
 # %% =========================== Axis ticks ==================================
 x_ticks_default = dict(min_value        = None,
@@ -175,13 +183,18 @@ for i in range(len(ax)):
     ax[i].tick_params(which='major', direction='in', top=True, right=True, labelright=False, labeltop=False)
     ax[i].tick_params(which='minor', direction='in', top=True, right=True)
 
-# remove x labels (shared x)
-if number_of_lines>1:
+# remove tick labels
+if number_of_lines>1 and shared_x:
     for i in range(len(ax)-number_of_columns):
         ax[i].tick_params(which='major', direction='in', top=True, right=True, labelbottom=False)
+if number_of_columns>1 and shared_y:
+    for i in range(len(ax)):
+        if i%(number_of_columns) != 0 and i!=0:
+            ax[i].tick_params(which='major', direction='in', top=True, right=True, labelleft=False)
 
+# remove tick at edge
 for i in range(len(ax)):
-    figm.remove_ticks_edge(ax[i])
+    figmanip.remove_ticks_edge(ax[i])
 # %% =============== Axes position on figure ==================================
 left   = 0.13
 bottom = 0.18

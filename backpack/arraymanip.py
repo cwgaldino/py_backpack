@@ -324,3 +324,19 @@ def peak_fit(x, y, guess_c=None, guess_A=None, guess_w=None, guess_offset=0, fix
         else:
             popt_2 = (popt[0], popt[1], popt[2], popt[-1], popt[-2])
     return function2fit(x, *popt), arr100, popt_2, err
+
+def flatten(x):
+    """Returns the flattened list or tuple."""
+    if len(x) == 0:
+        return x
+    if isinstance(x[0], list) or isinstance(x[0], tuple):
+        return flatten(x[0]) + flatten(x[1:])
+    return x[:1] + flatten(x[1:])
+
+def transpose(l):
+    """Transpose lists."""
+    try:
+        row_count, col_count = np.shape(l)
+        return [list(x) for x in list(zip(*l))]
+    except ValueError:
+        return [[x] for x in l]
