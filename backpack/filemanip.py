@@ -482,9 +482,7 @@ def load_data(filepath, delimiter=None, comment_flag='#', labels=None, force_arr
     filepath = Path(filepath)
 
     # guess delimiter
-    if delimiter == ' ':
-        delimiter = None
-    elif delimiter is None:
+    if delimiter is None:
         header = load_Comments(filepath, comment_flag=comment_flag, stop_flag=comment_flag)
         try: line_number = len(header)
         except TypeError: line_number = 0
@@ -497,7 +495,9 @@ def load_data(filepath, delimiter=None, comment_flag='#', labels=None, force_arr
         f.close()
         if delimiter is None:
             warnings.warn('Could not figure out the delimiter. Trying space.')
-
+    if delimiter == ' ':
+        delimiter = None
+        
     # get data
     data = np.genfromtxt(str(filepath), delimiter=delimiter, comments=comment_flag)
 

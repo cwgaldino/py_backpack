@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 from matplotlib.pyplot import get_current_fig_manager
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.ticker import AutoMinorLocator
 
 # backpack
@@ -382,7 +383,6 @@ def savefigs(filepath, figs='all'):
         pp.close()
     else:
         plt.savefig(str(filepath), format='pdf')
-
 
 def cm2pt(*tupl):
     """Convert values from cm to pt.
@@ -823,3 +823,88 @@ def soft_ungroup(filepath, outfilepath=None):
     f = outfilepath.open('w')
     f.write(output)
     f.close()
+
+
+# gradient ========================================================
+# https://bsouthga.dev/posts/color-gradients-with-python
+def rgb2hex(rgb, max_rgb_value=1):
+    """max_value can also be 255"""
+    if max(rgb) > max_rgb_value:
+        raise ValueError(f'rgb={rgb} maximum value is bigger than max_rgb_value.')
+    return mpl.colors.to_hex([x/max_rgb_value for x in rgb])
+
+def hex2rgb(string, max_rgb_value=1):
+    return [x*max_rgb_value for x in mpl.colors.to_rgb(string)]
+
+def _linear_gradient(start, end, n=10, max_rgb_value=1):
+  """Returns a gradient list of n colors between
+    two hex colors."""
+  # Starting and ending colors in RGB form
+  start = hex2rgb(start, 255)
+  end = hex2rgb(end, 255)
+  # Initilize a list of the output colors with the starting color
+  RGB_list = [start]
+  # Calcuate a color at each evenly spaced value of t from 1 to n
+  for t in range(1, n):
+    # Interpolate RGB vector for color at the current value of t
+    temp = [int(start[j] + (float(t)/(n-1))*(end[j]-start[j]))/255*max_rgb_value for j in range(3)]
+    # Add it to our list of output colors
+    RGB_list.append(temp)
+  return RGB_list
+
+def linear_gradient(colors, n, max_rgb_value=1):
+  """returns a list of colors forming linear gradients between
+      all sequential pairs of colors. "n" specifies the total
+      number of desired output colors."""
+  # The number of colors per individual linear gradient
+  n_out = int(float(n) / (len(colors) - 1))
+  # returns dictionary defined by color_dict()
+  RGB_list = _linear_gradient(colors[0], colors[1], n_out, max_rgb_value=255)
+
+  if len(colors) > 2:
+    for col in range(1, len(colors) - 1):
+      next = _linear_gradient(colors[col], colors[col+1], n_out, max_rgb_value=255)
+      for color in next[1:]:
+          RGB_list.append(color)
+  return [[x/255*max_rgb_value for x in color] for color in RGB_list]
+
+# Value cache
+fact_cache = {}
+def factorial(n):
+  """Memoized factorial function."""
+  try:
+    return fact_cache[n]
+  except(KeyError):
+    if n == 1 or n == 0:
+      result = 1
+    else:
+      result = n*factorial(n-1)
+    fact_cache[n] = result
+    return result
+
+def bernstein(t, n, i):
+  """Bernstein coefficient."""
+  binom = factorial(n)/float(factorial(i)*factorial(n - i))
+  return binom*((1-t)**(n-i))*(t**i)
+
+
+def bezier_gradient(colors, n=100, max_rgb_value=1):
+  """Returns rgb color list of a "bezier gradient" generated using a given list
+  of hex colors as control points."""
+  # RGB vectors for each color, use as control points
+  RGB_list = [hex2rgb(color, 255) for color in colors]
+  degree = len(RGB_list) - 1
+
+  def bezier_interp(t):
+    """Define an interpolation function for this specific curve."""
+    # List of all summands
+    summands = [list(map(lambda x: int(bernstein(t, degree, i)*x), c)) for i, c in enumerate(RGB_list)]
+    # Output color
+    out = [0, 0, 0]
+    # Add components of each summand together
+    for vector in summands:
+      for c in range(3):
+        out[c] += vector[c]
+    return out
+
+  return [[x/255*max_rgb_value for x in bezier_interp(float(t)/(n-1))] for t in range(n)]

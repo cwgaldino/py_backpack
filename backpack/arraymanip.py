@@ -93,7 +93,7 @@ def movingaverage(x, window_size):
         window_size (int): number of points to average.
 
     Returns:
-        array.
+        array of lenght given by (len(x)-window_size+1).
 
     Example:
         >>> x = [0,1,2,3,4,5,6,7,8,9]
@@ -182,10 +182,13 @@ def shift(x, y, shift, mode='hard'):
         x = np.array(x) + shift
 
     elif mode == 'roll' or mode == 'rotate':
-        if shift.is_integer():
+        try:
+            if shift.is_integer():
+                y = np.roll(y, int(shift))
+            else:
+                raise ValueError("shift must be an interger for mode='roll'.")
+        except AttributeError:
             y = np.roll(y, int(shift))
-        else:
-            raise ValueError("shift must be an interger for mode='roll'.")
         if shift > 0:
             y[:int(shift)] = 0
         elif shift < 0:
@@ -340,3 +343,7 @@ def transpose(l):
         return [list(x) for x in list(zip(*l))]
     except ValueError:
         return [[x] for x in l]
+
+def compress(data, selectors):
+    # compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F
+    return [d for d, s in zip(data, selectors) if s]

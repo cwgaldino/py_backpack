@@ -145,14 +145,22 @@ if True:
     ax[0].text(4.35, 8.48, 'text', fontproperties=font0)
 
 # %% =========================== Axis Labels ==================================
-if number_of_lines>1 and shared_x:
+x_label = r'$F4/F2$'
+if number_of_lines>1 and shared_x:  # puts x label at bottom of each column
     for i in range(number_of_columns):
-        ax[-(i+1)].set_xlabel(r'R ($\AA$)', fontproperties=font0, labelpad=None)
+        ax[-(i+1)].set_xlabel(x_label, fontproperties=font0, labelpad=None)
+else:  # put x label on all axes
+    for i in range(len(ax)):
+        ax[i].set_xlabel(x_label, fontproperties=font0, labelpad=None)
 
-if number_of_columns>1 and shared_y:
+y_label = r'Energy (eV)'
+if number_of_columns>1 and shared_y:   # puts y label on each row of each row
     for i in range(len(ax)):
         if i%(number_of_columns) == 0 or i==0:
-            ax[i].set_ylabel(r'Co - O pairs (%)', fontproperties=font0, labelpad=None)
+            ax[i].set_ylabel(y_label, fontproperties=font0, labelpad=None)
+else:  # put y label on all axes
+    for i in range(len(ax)):
+        ax[i].set_ylabel(y_label, fontproperties=font0, labelpad=None)
 
 # %% =========================== Axis ticks ==================================
 x_ticks_default = dict(min_value        = None,
@@ -194,7 +202,7 @@ if number_of_columns>1 and shared_y:
 
 # remove tick at edge
 for i in range(len(ax)):
-    figmanip.remove_ticks_edge(ax[i])
+    figm.remove_ticks_edge(ax[i])
 # %% =============== Axes position on figure ==================================
 left   = 0.13
 bottom = 0.18
