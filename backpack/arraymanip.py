@@ -337,7 +337,7 @@ def flattened(x):
     return x[:1] + flatten(x[1:])
 
 
-def transposed(l):
+def transposed(arr):
     """Returns transposed lists/arrays."""
     try:
         row_count, col_count = np.shape(l)
@@ -346,8 +346,8 @@ def transposed(l):
         return [[x] for x in l]
 
 
-def compressed(data, selectors):
+def compressed(x, selectors):
     """
     compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F
     """
-    return [d for d, s in zip(data, selectors) if s]
+    return [d for d, s in zip(x, selectors) if s]

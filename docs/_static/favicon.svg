@@ -27,9 +27,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="14.89975"
-     inkscape:cy="113.13709"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="-82.832508"
+     inkscape:cy="-276.7818"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -41,8 +41,8 @@
      fit-margin-bottom="0"
      inkscape:window-width="1682"
      inkscape:window-height="1020"
-     inkscape:window-x="-365"
-     inkscape:window-y="134"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:pagecheckerboard="0" />
   <metadata
@@ -79,6 +79,16 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-8.6382254,-9.1493384)">
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:1.05833;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       id="rect965"
+       width="337.60867"
+       height="168.27467"
+       x="-150.11987"
+       y="-192.90642"
+       inkscape:export-filename="C:\Users\galdin_c\Documents\github\py_backpack\docs\_static\social_preciew.png"
+       inkscape:export-xdpi="100"
+       inkscape:export-ydpi="100" />
     <path
        style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 55.076307,19.506032 8.552624,-2.672695 -4.075861,-3.207234 -5.879931,1.804069 -2.605876,-4.543582 -2.338609,1.269531 -0.133634,3.140417 -3.006783,-1.80407 3.875408,-2.605878 -3.741772,-0.801808 -4.543584,1.202713 1.80407,2.071339 z"
@@ -161,5 +171,95 @@
        style="fill:none;stroke:#000000;stroke-width:1.76389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 16.711523,53.697129 18.003908,3.966858"
        id="path877" />
+    <g
+       id="g1112"
+       transform="matrix(1.4486507,0,0,1.4478094,-58.840659,54.479899)"
+       style="stroke-width:0.690498"
+       inkscape:export-filename="C:\Users\galdin_c\Documents\github\py_backpack\docs\_static\social_preciew.png"
+       inkscape:export-xdpi="100"
+       inkscape:export-ydpi="100">
+      <path
+         style="opacity:0.997;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182694px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 68.859146,-135.52232 8.552624,-2.67269 -4.075861,-3.20724 -5.879931,1.80407 -2.605876,-4.54358 -2.338609,1.26953 -0.133634,3.14042 -3.006783,-1.80407 3.875408,-2.60588 -3.741772,-0.80181 -4.543584,1.20272 1.80407,2.07133 z"
+         id="path1461-2" />
+      <path
+         style="opacity:0.997;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182694px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 71.197753,-105.98903 5.545844,-2.53906 -2.071341,-1.60362 9.2208,-26.59332 -6.280835,-1.60362 -4.543581,17.70661 z"
+         id="path1058-4" />
+      <path
+         style="opacity:0.997;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.182694px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 27.766455,-125.96743 25.591058,-17.57297 6.614919,5.74629 5.612662,6.1472 -3.274052,16.9048 -5.078122,-3.67496 -29.399648,-7.08264 z"
+         id="path871-5" />
+      <path
+         style="opacity:0.997;fill:#306998;fill-opacity:1;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 58.576892,-80.676137 8.305443,-2.973404 5.981856,-36.649559 -3.701312,-15.30259 -15.328171,-8.20115 11.504254,11.66287 -2.858561,17.97737"
+         id="path32-0"
+         sodipodi:nodetypes="ccccccc" />
+      <path
+         style="opacity:0.997;fill:#ffd43b;fill-opacity:1;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 57.527936,-118.7922 4.952465,4.6296 -3.903509,33.486463 -6.575121,0.01442 v 0"
+         id="path30-2" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;opacity:0.997;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.182694"
+         x="4.5836678"
+         y="-161.35844"
+         id="text26-7"
+         transform="matrix(1.1560773,0.23855206,-0.2098267,0.82169714,0,0)"><tspan
+           sodipodi:role="line"
+           id="tspan24-8"
+           x="4.5836678"
+           y="-161.35844"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Catamaran;-inkscape-font-specification:'Catamaran Bold';stroke-width:0.182694">.py</tspan></text>
+      <path
+         style="opacity:0.997;fill:#306998;fill-opacity:1;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 23.378714,-87.732741 28.623057,7.071021 5.526165,-38.13048 -30.18121,-6.58629 z"
+         id="path28-9"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         style="opacity:0.997;fill:#ffd43b;fill-opacity:1;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 54.457709,-143.93854 -21.875215,3.32009 -5.235768,15.23996"
+         id="path34-6"
+         sodipodi:nodetypes="ccc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 69.162879,-135.60169 8.757978,-2.85026 5.623676,2.02181 -8.616926,25.40462 v 0 l -0.236797,1.13643"
+         id="path36-2"
+         sodipodi:nodetypes="cccccc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 58.627147,-141.28287 6.153153,-2.66923 2.628013,4.14876"
+         id="path38-9"
+         sodipodi:nodetypes="ccc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 64.015722,-138.41396 8.885862,-2.82757 5.019273,2.78958"
+         id="path40-9"
+         sodipodi:nodetypes="ccc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 64.955843,-144.24072 -5.85566,-0.74439 -5.226828,1.12441"
+         id="path44-8"
+         sodipodi:nodetypes="ccc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 62.660527,-142.73208 -0.38705,3.29643"
+         id="path46-3"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 70.487877,-105.48156 6.116763,-3.04554 -4.073475,-2.96398 -0.797128,2.37836 2.495177,1.58338"
+         id="path48-6"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 77.661201,-138.26262 -4.735275,18.51124"
+         id="path875-8"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="opacity:0.997;fill:none;stroke:#000000;stroke-width:1.21796;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 30.494362,-101.33122 18.003908,3.966857"
+         id="path877-1" />
+    </g>
   </g>
 </svg>
