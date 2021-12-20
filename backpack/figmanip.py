@@ -23,12 +23,12 @@ from matplotlib.ticker import AutoMinorLocator
 
 # backpack
 from .arraymanip import index
-from .interact import copy2clipboard, png2clipboard, svg2clipboard
+from .interact import copy2clipboard, png2clipboard, svg2clipboard, operating_system
 
-system = platform.system().lower()
-is_windows = system == 'windows'
-is_linux = system == 'linux'
-is_mac = system == 'darwin'
+is_windows = operating_system() == 'windows'
+is_linux   = operating_system() == 'linux'
+is_mac     = operating_system() == 'mac'
+
 
 def set_default_window_position(*args):
     """Set the default window position for when :py:func:`setWindowPosition` is called.
@@ -891,7 +891,7 @@ def linear_gradient(colors, n, max_rgb_value=1):
     """Returns a list of colors forming linear gradients between colors.
 
     Note:
-        see https://bsouthga.dev/posts/color-gradients-with-python.
+        see https://bsouthga.dev/posts/color-gradients-with-python
 
     Args:
       colors (tuple): list with rgb values.
@@ -924,8 +924,8 @@ def _factorial(n):
             result = 1
         else:
             result = n*_factorial(n-1)
-      fact_cache[n] = result
-      return result
+        fact_cache[n] = result
+        return result
 
 def _bernstein(t, n, i):
     """Bernstein coefficient used by the bezier_gradient() function."""
@@ -962,4 +962,4 @@ def bezier_gradient(colors, n=100, max_rgb_value=1):
                 out[c] += vector[c]
         return out
 
-      return [[x/255*max_rgb_value for x in bezier_interp(float(t)/(n-1))] for t in range(n)]
+    return [[x/255*max_rgb_value for x in bezier_interp(float(t)/(n-1))] for t in range(n)]

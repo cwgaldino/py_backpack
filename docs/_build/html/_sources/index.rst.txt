@@ -10,7 +10,7 @@ This repository aims at providing useful modules and code snippets that I use al
    File manipulation <filemanip>
    Matplotlib figures manipulation <figmanip>
    Array manipulation <arraymanip>
-   Interaction module <intermanip>
+   Interaction module <interact>
    Model functions module <model_functions>
 
 

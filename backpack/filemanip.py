@@ -9,7 +9,7 @@ import numpy as np
 import datetime
 from copy import deepcopy
 import collections
-from .intermanip import query
+from .interact import query
 import json
 from detect_delimiter import detect
 # %%

@@ -23,10 +23,25 @@ try:
 except ModuleNotFoundError:
     pass
 
-system = platform.system().lower()
-is_windows = system == 'windows'
-is_linux = system == 'linux'
-is_mac = system == 'darwin'
+
+def operating_system():
+    """Return string with name of operating system (windows, linux, or mac)."""
+    system = platform.system().lower()
+    is_windows = system == 'windows'
+    is_linux = system == 'linux'
+    is_mac = system == 'darwin'
+    if is_windows:
+        return 'windows'
+    elif is_linux:
+        return 'linux'
+    elif is_mac:
+        return 'mac'
+    else:
+        raise ValueError('OS not recognized')
+
+is_windows = operating_system() == 'windows'
+is_linux   = operating_system() == 'linux'
+is_mac     = operating_system() == 'mac'
 
 def make_sound(duration=1, freq=440):
     """Make a sound.
@@ -112,7 +127,7 @@ def copy2clipboard(txt):
         subprocess.check_call(cmd, shell=True)
     elif is_linux:
         p = subprocess.Popen(['xsel','-bi'], stdin=subprocess.PIPE)
-        p.communicate(input=bytes(txt.strip()).encode()))
+        p.communicate(input=bytes(txt.strip()).encode())
     elif is_mac:
         cmd='echo '+ txt.strip() + ' | pbcopy'
         subprocess.check_call(cmd, shell=True)
