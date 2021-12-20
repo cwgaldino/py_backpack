@@ -16,7 +16,7 @@ Installation
 
 .. code-block:: bash
 
-  $ pip install git+https://github.com/cwgaldino/py_backpack
+  pip install git+https://github.com/cwgaldino/py_backpack
 
 2) Without installing. Clone (or download) the GitHub repository and use
 
@@ -32,23 +32,3 @@ Usage
 >>> import backpack.arraymanip as am
 >>> import backpack.interact as interact
 >>> from backpack.model_functions import gaussian_fwhm
-
-
-..
-.. Modules
-.. ==========
-..
-..
-.. manipUtils.fmanip
-.. -----------------
-.. File manipulation functions for everyday use.
-..
-..
-.. manipUtils.arraymanip
-.. ----------------------
-.. Array manipulation functions for everyday use.
-..
-..
-.. manipUtils.figmanip
-.. -----------------
-.. Matplotlib figure manipulation functions for everyday use.

@@ -6,6 +6,8 @@ Installation
 
 1) Using pip straight from GitHub
 
+.. code-block:: bash
+
   pip install git+https://github.com/cwgaldino/py_backpack
 
 2) Without installing. Clone (or download) the GitHub repository and use
