@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    inkscape:export-ydpi="100"
    inkscape:export-xdpi="100"
-   inkscape:export-filename="/home/galdino/github/py-backpack/docs/_static/favicon.png"
+   inkscape:export-filename="C:\Users\galdin_c\Documents\github\py_backpack\docs\_static\favicon.png"
    width="62.236881mm"
    height="66.306892mm"
    viewBox="0 0 62.236881 66.306892"
    version="1.1"
    id="svg8"
-   inkscape:version="1.0 (4035a4f, 2020-05-01)"
-   sodipodi:docname="favicon.svg">
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="favicon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -27,9 +27,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="77.904705"
-     inkscape:cy="106.47655"
+     inkscape:zoom="1.979899"
+     inkscape:cx="14.89975"
+     inkscape:cy="113.13709"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -39,11 +39,12 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1331"
-     inkscape:window-height="713"
-     inkscape:window-x="35"
-     inkscape:window-y="660"
-     inkscape:window-maximized="1" />
+     inkscape:window-width="1682"
+     inkscape:window-height="1020"
+     inkscape:window-x="-365"
+     inkscape:window-y="134"
+     inkscape:window-maximized="0"
+     inkscape:pagecheckerboard="0" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -78,6 +79,18 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-8.6382254,-9.1493384)">
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 55.076307,19.506032 8.552624,-2.672695 -4.075861,-3.207234 -5.879931,1.804069 -2.605876,-4.543582 -2.338609,1.269531 -0.133634,3.140417 -3.006783,-1.80407 3.875408,-2.605878 -3.741772,-0.801808 -4.543584,1.202713 1.80407,2.071339 z"
+       id="path1461" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 57.414914,49.039316 5.545844,-2.539061 -2.071341,-1.603619 9.2208,-26.593316 -6.280835,-1.603617 -4.543581,17.706606 z"
+       id="path1058" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 13.983616,29.060918 25.591058,-17.572971 6.614919,5.746295 5.612662,6.147199 -3.274052,16.904797 -5.078122,-3.674957 -29.399648,-7.082641 z"
+       id="path871" />
     <path
        style="fill:#306998;fill-opacity:1;stroke:#000000;stroke-width:1.76389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 44.794053,74.352213 53.099496,71.378809 59.081352,34.72925 55.38004,19.426659 40.051869,11.225511 51.556123,22.88838 48.697562,40.865745"

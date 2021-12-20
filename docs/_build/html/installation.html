@@ -20,7 +20,9 @@
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="filemanip" href="filemanip.html" />
+    <link rel="prev" title="py-backpack" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,10 +40,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filemanip.html">File manipulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="figmanip.html">Matplotlib figures manipulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="arraymanip.html">Array manipulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interact.html">Interaction module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model_functions.html">Model functions module</a></li>
 </ul>
 
@@ -71,24 +75,28 @@
              
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
-<p>Clone (or download) the GitHub repository</p>
+<ol class="arabic simple">
+<li><p>Using pip straight from GitHub</p></li>
+</ol>
+<blockquote>
+<div><p>pip install git+https://github.com/cwgaldino/py_backpack</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Without installing. Clone (or download) the GitHub repository and use</p></li>
+</ol>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;/home/galdino/github/py-backpack&#39;</span><span class="p">)</span>
-<span class="go">sys.path.append(r&#39;C:\Users\carlo\github\py-backpack&#39;)</span>
-<span class="go">import backpack.filemanip as fmanip</span>
-<span class="go">import backpack.figmanip as figmanip</span>
-<span class="go">import backpack.arraymanip as manip</span>
-<span class="go">from backpack.arraymanip import index</span>
-<span class="go">import backpack.calcmanip as calc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;path-to-py_backpack&gt;&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In the future, I think to</p>
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="py-backpack" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="filemanip.html" class="btn btn-neutral float-right" title="filemanip" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

@@ -6,11 +6,27 @@ py_backpack
 
 This repository aims at providing useful modules and code snippets that I use almost everyday.
 
+
+
+
+Installation
+==================
+
+1) Using pip straight from GitHub
+
+  pip install git+https://github.com/cwgaldino/py_backpack
+
+2) Without installing. Clone (or download) the GitHub repository and use
+
+>>> import sys
+>>> sys.path.append('<path-to-py_backpack>')
+
+
 .. Installation
 .. =============
 .. To install use:
 ..     `pip install <path to dist/*.whl>`
-.. 
+..
 .. Modules
 .. ==========
 ..
