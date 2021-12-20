@@ -23,7 +23,12 @@ from matplotlib.ticker import AutoMinorLocator
 
 # backpack
 from .arraymanip import index
+from .interact import copy2clipboard, png2clipboard, svg2clipboard
 
+system = platform.system().lower()
+is_windows = system == 'windows'
+is_linux = system == 'linux'
+is_mac = system == 'darwin'
 
 def set_default_window_position(*args):
     """Set the default window position for when :py:func:`setWindowPosition` is called.
@@ -45,7 +50,7 @@ def set_default_window_position(*args):
     p = (x, y)
 
 
-def setWindowPosition(*args):
+def set_window_position(*args):
     """Change position of a maptplotlib figure on screen.
 
     Tipically, (0, 0) is the top left corner.
@@ -57,7 +62,7 @@ def setWindowPosition(*args):
             position will be preserved.
 
     See Also:
-        :py:func:`getWindowPosition`
+        :py:func:`get_window_position`
     """
     if len(args) > 1:
         x = int(args[0])
@@ -90,7 +95,7 @@ def setWindowPosition(*args):
             warnings.warn('Backend not suported.')
 
 
-def getWindowPosition():
+def get_window_position():
     """Return the position of a matplotlib position on the screen.
 
     Tipically, (0, 0) is the top left corner of your monitor.
@@ -99,7 +104,7 @@ def getWindowPosition():
         Tuple with the x and y position.
 
     See Also:
-        :py:func:`setWindowPosition`
+        :py:func:`set_window_position`
     """
     figManager = get_current_fig_manager()
 
@@ -114,14 +119,14 @@ def getWindowPosition():
             return (0, 0)
 
 
-def setWindowSize(*args):
+def set_window_size(*args):
     """Change the size of the window of a matplotlib figure.
 
     Args:
         *args: A tuple like (width, height) or two separate width, height values (in px).
 
     See Also:
-        :py:func:`getWindowSize`
+        :py:func:`get_window_size`
     """
     if len(args) > 1:
         width = int(args[0])
@@ -134,7 +139,7 @@ def setWindowSize(*args):
         return
 
     figManager = get_current_fig_manager()
-    x,y = getWindowPosition()
+    x,y = get_window_position()
 
     try:  # tested on tKinter backend
         figureGeometry = str(width) + 'x' + str(height) + '+' + str(x) + '+' + str(y)
@@ -147,14 +152,14 @@ def setWindowSize(*args):
             warnings.warn('Backend not suported.')
 
 
-def getWindowSize():
+def get_window_size():
     """Returns the size of the window of a matplotlib figure.
 
     Returns:
         Tuple with the width and height values.
 
     See Also:
-        :py:func:`setWindowSize`
+        :py:func:`set_window_size`
     """
     figManager = get_current_fig_manager()
 
@@ -243,9 +248,9 @@ def onclick(event):
     """This function is called everytime a mouse key is pressed over a figure.
 
     Right click:
-        x value is copied to the clipboard (using xsel).
+        x value is copied to the clipboard.
     Left click OR (y + Right click):
-        y value is copied to the clipboard (using xsel).
+        y value is copied to the clipboard.
     Middle click:
         Figure is saved as svg or png in the default folder and copied to the clipboard
         (see :py:func:`set_onclick()`).
@@ -255,9 +260,9 @@ def onclick(event):
         by the default `matplotlib.pyplot.figure() <https://matplotlib.org/3.3.1/api/_as_gen/matplotlib.pyplot.figure.html>`_ fuction.
 
     Note:
-        This function is based on xsel and xclip and therefore works only on linux
-        machines (use ``sudo apt-get install -y xsel`` and
-        ``sudo apt-get install -y xclip`` to install xsel and xclip, respectivelly).
+        On linux this function uses xsel and xclip (use ``sudo apt-get install -y xsel`` and
+        ``sudo apt-get install -y xclip`` to install them). The middle click
+        function is not implemented on windows and mac yet.
     """
 
     # print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
@@ -273,25 +278,23 @@ def onclick(event):
     except NameError:
         onclick_round_x = 2
 
-    # right
     if event.key == 'y' or event.button == 3:
         try:
-            p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
             if onclick_round_y is not None:
                 y = round(event.ydata, onclick_round_y)
             else:
                 y = event.ydata
-            p.communicate(input=bytes(str(y).encode()))
+            copy2clipboard(y)
+
         except TypeError:
             pass
     else: # left
         try:
-            p = Popen(['xsel','-bi'], stdin=PIPE)  # ctrl+V
             if onclick_round_y is not None:
                 x = round(event.xdata, onclick_round_x)
             else:
                 x = event.xdata
-            p.communicate(input=bytes(str(x).encode()))
+            copy2clipboard(x)
         except TypeError:
             pass
     # double click (put image on clipboard)
@@ -311,25 +314,27 @@ def onclick(event):
         except NameError:
             onclick_resolution = 300
 
+        onclick_folder = Path(onclick_folder)
         if onclick_fig_format == 'svg':
-            plt.savefig(f'{onclick_folder/".temporary_fig.svg"}')
-            p = Popen([f'xclip -selection clipboard -t image/svg+xml -i {onclick_folder/".temporary_fig.svg"}'], shell=True)  # ctrl+V
-            p = Popen([f'echo {onclick_folder/".temporary_fig.svg"}  |xclip -in -selection primary -target text/uri-list'], shell=True)  # ctrl+V
+            if is_linux:
+                plt.savefig(f'{onclick_folder/".temporary_fig.svg"}')
+                svg2clipboard(onclick_folder/".temporary_fig.svg")
 
         elif onclick_fig_format == 'png':
-            plt.savefig(f'{onclick_folder/".temporary_fig.png"}', dpi=onclick_resolution)
-            p = Popen([f'xclip -selection clipboard -t image/png -i {onclick_folder/".temporary_fig.png"}'], shell=True)  # ctrl+V
+            if is_linux:
+                plt.savefig(f'{onclick_folder/".temporary_fig.png"}', dpi=onclick_resolution)
+                png2clipboard(onclick_folder/".temporary_fig.png")
 
 
-def zoom(start, stop, fig=None, marginx=10, marginy=10):
+def zoom(start, stop, fig=None, margin_x=10, margin_y=10):
     """Zoom up portion of a plot from start to stop.
 
     Args:
         start (float or int): initial x value.
         stop (float or int): final x value.
         fig (int, optional): number of the figure. If None, current figure is used.
-        marginx (int, optional): margin value between data and the edges of plot in percentage of the x data range.
-        marginy (int, optional): margin value between data and the edges of plot in percentage of the y data range.
+        margin_x (int, optional): margin value between data and the edges of plot in percentage of the x data range.
+        margin_y (int, optional): margin value between data and the edges of plot in percentage of the y data range.
     """
     if fig is None:
         fig = plt.gcf()
@@ -350,10 +355,10 @@ def zoom(start, stop, fig=None, marginx=10, marginy=10):
                 if ymin_temp < ymin:
                     ymin = copy.copy(ymin_temp)
 
-                m =  (ymax-ymin)*marginy/100
+                m =  (ymax-ymin)*margin_y/100
                 plt.ylim(ymin-m, ymax+m)
 
-                m =  (stop-start)*marginx/100
+                m =  (stop-start)*margin_x/100
                 plt.xlim(start, stop)
             except UnboundLocalError:
                 warnings.warn("All data are outside of the required range. Cannot zoom.")
@@ -388,7 +393,7 @@ def cm2pt(*tupl):
     """Convert values from cm to pt.
 
     Args:
-        *Args: A tuple with values to convert
+        *Args: single value or a tuple with values to convert
 
     Returns:
         A tuple with values converted
@@ -404,6 +409,8 @@ def cm2px(*tupl, dpi=None):
 
     Args:
         *Args: A tuple with values to convert
+        dpi (int): pixel density or dots per inch.
+
 
     Returns:
         A tuple with values converted
@@ -421,7 +428,7 @@ def cm2inch(*tupl):
     """Convert values from cm to inches.
 
     Args:
-        *Args: A tuple with values to convert
+        *Args: single value or a tuple with values to convert
 
     Returns:
         A tuple with values converted
@@ -652,8 +659,10 @@ def remove_ticks_edge(ax):
         ticks[-1].tick2line.set_visible(False)
 
 
-def axBox2figBox(ax, points):
+def ax_box2fig_box(ax, points):
     """Transform 'bbox like' axis position values to percentage fig position.
+
+    Useful for positioning insets.
 
     Args:
         ax (matplotlib.axes.Axes): axes instance.
@@ -664,15 +673,15 @@ def axBox2figBox(ax, points):
     """
     [x_init, y_init, x_final, y_final] = points
 
-    x_init  = axPos2figPos(ax, x_init, direction='x')
-    y_init  = axPos2figPos(ax, y_init, direction='y')
-    delta_x = axPos2figPos(ax, x_final, direction='x') - x_init
-    delta_y = axPos2figPos(ax, y_final, direction='y') - y_init
+    x_init  = ax_pos2fig_pos(ax, x_init, direction='x')
+    y_init  = ax_pos2fig_pos(ax, y_init, direction='y')
+    delta_x = ax_pos2fig_pos(ax, x_final, direction='x') - x_init
+    delta_y = ax_pos2fig_pos(ax, y_final, direction='y') - y_init
 
     return [x_init, y_init, delta_x, delta_y]
 
 
-def axPos2figPos(ax, value, direction='x'):
+def ax_pos2fig_pos(ax, value, direction='x'):
     """Transform axis position values to figure percentage position.
 
     Args:
@@ -695,7 +704,7 @@ def axPos2figPos(ax, value, direction='x'):
     return x0 + delta*value
 
 
-def ungroup(filepath, outfilepath=None):
+def ungroup_svg(filepath, outfilepath=None):
     """Ungroup all objects in svg files created by matplotlib.
 
     Text with latex equations are kept grouped.
@@ -757,7 +766,7 @@ def ungroup(filepath, outfilepath=None):
     f.close()
 
 
-def soft_ungroup(filepath, outfilepath=None):
+def soft_ungroup_svg(filepath, outfilepath=None):
     """Ungroup objects in svg file (each object stands in a group by itself).
 
     Args:
@@ -825,86 +834,132 @@ def soft_ungroup(filepath, outfilepath=None):
     f.close()
 
 
-# gradient ========================================================
-# https://bsouthga.dev/posts/color-gradients-with-python
+# gradient functions ========================================================
 def rgb2hex(rgb, max_rgb_value=1):
-    """max_value can also be 255"""
+    """Return hex value.
+
+    Args:
+        rgb (tuple): rgb values ([255 255 255])
+        max_rgb_value (int, optional): max rgb possible value. Tipically, 1 or 255.
+
+    Returns:
+        hex value."""
     if max(rgb) > max_rgb_value:
         raise ValueError(f'rgb={rgb} maximum value is bigger than max_rgb_value.')
     return mpl.colors.to_hex([x/max_rgb_value for x in rgb])
 
 def hex2rgb(string, max_rgb_value=1):
+    """Return rgb value.
+
+    Args:
+        string (string): hex value as string.
+        max_rgb_value (int, optional): max rgb possible value. Tipically, 1 or 255.
+
+    Returns:
+        rgb value (tuple)."""
     return [x*max_rgb_value for x in mpl.colors.to_rgb(string)]
 
 def _linear_gradient(start, end, n=10, max_rgb_value=1):
-  """Returns a gradient list of n colors between
-    two hex colors."""
-  # Starting and ending colors in RGB form
-  start = hex2rgb(start, 255)
-  end = hex2rgb(end, 255)
-  # Initilize a list of the output colors with the starting color
-  RGB_list = [start]
-  # Calcuate a color at each evenly spaced value of t from 1 to n
-  for t in range(1, n):
-    # Interpolate RGB vector for color at the current value of t
-    temp = [int(start[j] + (float(t)/(n-1))*(end[j]-start[j]))/255*max_rgb_value for j in range(3)]
-    # Add it to our list of output colors
-    RGB_list.append(temp)
-  return RGB_list
+    """Returns a gradient list of n colors between two hex colors.
+
+    Args:
+        start (tuple): rgb start value.
+        end (tuple): rgb final value.
+        n (int, optional): number of intermediate colors.
+        max_rgb_value (int, optional): max rgb possible value. Tipically, 1 or 255.
+
+    Note:
+        see https://bsouthga.dev/posts/color-gradients-with-python.
+
+    Returns:
+        list with rgb colors.
+    """
+    # Starting and ending colors in RGB form
+    start = hex2rgb(start, 255)
+    end = hex2rgb(end, 255)
+    # Initilize a list of the output colors with the starting color
+    RGB_list = [start]
+    # Calcuate a color at each evenly spaced value of t from 1 to n
+    for t in range(1, n):
+        # Interpolate RGB vector for color at the current value of t
+        temp = [int(start[j] + (float(t)/(n-1))*(end[j]-start[j]))/255*max_rgb_value for j in range(3)]
+        # Add it to our list of output colors
+        RGB_list.append(temp)
+    return RGB_list
 
 def linear_gradient(colors, n, max_rgb_value=1):
-  """returns a list of colors forming linear gradients between
-      all sequential pairs of colors. "n" specifies the total
-      number of desired output colors."""
-  # The number of colors per individual linear gradient
-  n_out = int(float(n) / (len(colors) - 1))
-  # returns dictionary defined by color_dict()
-  RGB_list = _linear_gradient(colors[0], colors[1], n_out, max_rgb_value=255)
+    """Returns a list of colors forming linear gradients between colors.
 
-  if len(colors) > 2:
-    for col in range(1, len(colors) - 1):
-      next = _linear_gradient(colors[col], colors[col+1], n_out, max_rgb_value=255)
-      for color in next[1:]:
-          RGB_list.append(color)
-  return [[x/255*max_rgb_value for x in color] for color in RGB_list]
+    Note:
+        see https://bsouthga.dev/posts/color-gradients-with-python.
+
+    Args:
+      colors (tuple): list with rgb values.
+      n (int, optional): number of intermediate colors.
+      max_rgb_value (int, optional): max rgb possible value. Tipically, 1 or 255.
+
+    Returns:
+      list with rgb colors.
+    """
+    # The number of colors per individual linear gradient
+    n_out = int(float(n) / (len(colors) - 1))
+    # returns dictionary defined by color_dict()
+    RGB_list = _linear_gradient(colors[0], colors[1], n_out, max_rgb_value=255)
+
+    if len(colors) > 2:
+        for col in range(1, len(colors) - 1):
+            next = _linear_gradient(colors[col], colors[col+1], n_out, max_rgb_value=255)
+        for color in next[1:]:
+            RGB_list.append(color)
+    return [[x/255*max_rgb_value for x in color] for color in RGB_list]
 
 # Value cache
 fact_cache = {}
-def factorial(n):
-  """Memoized factorial function."""
-  try:
-    return fact_cache[n]
-  except(KeyError):
-    if n == 1 or n == 0:
-      result = 1
-    else:
-      result = n*factorial(n-1)
-    fact_cache[n] = result
-    return result
+def _factorial(n):
+    """Memoized factorial function used by the  _bernstein() function."""
+    try:
+        return fact_cache[n]
+    except(KeyError):
+        if n == 1 or n == 0:
+            result = 1
+        else:
+            result = n*_factorial(n-1)
+      fact_cache[n] = result
+      return result
 
-def bernstein(t, n, i):
-  """Bernstein coefficient."""
-  binom = factorial(n)/float(factorial(i)*factorial(n - i))
-  return binom*((1-t)**(n-i))*(t**i)
-
+def _bernstein(t, n, i):
+    """Bernstein coefficient used by the bezier_gradient() function."""
+    binom = _factorial(n)/float(_factorial(i)*_factorial(n - i))
+    return binom*((1-t)**(n-i))*(t**i)
 
 def bezier_gradient(colors, n=100, max_rgb_value=1):
-  """Returns rgb color list of a "bezier gradient" generated using a given list
-  of hex colors as control points."""
-  # RGB vectors for each color, use as control points
-  RGB_list = [hex2rgb(color, 255) for color in colors]
-  degree = len(RGB_list) - 1
+    """Returns a list of rgb colors forming a bezier gradient between colors.
 
-  def bezier_interp(t):
-    """Define an interpolation function for this specific curve."""
-    # List of all summands
-    summands = [list(map(lambda x: int(bernstein(t, degree, i)*x), c)) for i, c in enumerate(RGB_list)]
-    # Output color
-    out = [0, 0, 0]
-    # Add components of each summand together
-    for vector in summands:
-      for c in range(3):
-        out[c] += vector[c]
-    return out
+    Note:
+        see https://bsouthga.dev/posts/color-gradients-with-python.
 
-  return [[x/255*max_rgb_value for x in bezier_interp(float(t)/(n-1))] for t in range(n)]
+    Args:
+      colors (tuple): list with hex values.
+      n (int, optional): number of intermediate colors.
+      max_rgb_value (int, optional): max rgb possible value. Tipically, 1 or 255.
+
+    Returns:
+      list with rgb colors.
+    """
+    # RGB vectors for each color, use as control points
+    RGB_list = [hex2rgb(color, 255) for color in colors]
+    degree = len(RGB_list) - 1
+
+    def bezier_interp(t):
+        """Define an interpolation function for this specific curve."""
+        # List of all summands
+        summands = [list(map(lambda x: int(_bernstein(t, degree, i)*x), c)) for i, c in enumerate(RGB_list)]
+        # Output color
+        out = [0, 0, 0]
+        # Add components of each summand together
+        for vector in summands:
+            for c in range(3):
+                out[c] += vector[c]
+        return out
+
+      return [[x/255*max_rgb_value for x in bezier_interp(float(t)/(n-1))] for t in range(n)]

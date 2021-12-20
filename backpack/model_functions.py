@@ -1,12 +1,12 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Everyday use mathematical functions and distributions."""
+"""Mathematical functions and distributions."""
 
 import numpy as np
 from scipy.special import erf
 
 
-def Gauss(x, amp, c, sigma):
+def gaussian(x, amp, c, sigma):
     r"""Gaussian distribution.
 
     .. math:: y(x) = \text{amp } e^{-\frac{(x-c)^2}{2 \sigma^2}}
@@ -29,7 +29,7 @@ def Gauss(x, amp, c, sigma):
     return amp*np.exp(-(x-c)**2/(2*sigma**2))
 
 
-def areaGauss(x, A, c, sigma):
+def gaussian_area(x, A, c, sigma):
     r"""Gaussian distribution.
 
     .. math:: y(x) = \frac{\text{Area}}{\sqrt{2\pi} w} e^{-\frac{(x-c)^2}{2 w^2}}
@@ -44,7 +44,7 @@ def areaGauss(x, A, c, sigma):
     # return A/(np.sqrt(2*np.pi)*abs(w))  *np.exp(-(x-c)**2/(2*w**2))
 
 
-def fwhmGauss(x, amp, c, w):
+def gaussian_fwhm(x, amp, c, w):
     r"""Gaussian distribution.
 
     .. math:: y(x) = \text{amp } e^{-\frac{4 \ln(2) (x-c)^2}{w^2}}
@@ -63,7 +63,7 @@ def fwhmGauss(x, amp, c, w):
     # return A*np.exp((-4*np.log(2)*((x-c)**2))/(w**2))
 
 
-def fwhmAreaGauss(x, A, c, w):
+def gaussian_area_fwhm(x, A, c, w):
     r"""Gaussian distribution.
 
     .. math:: y(x) = \frac{2 \sqrt{\ln(2)} A}{w \sqrt{\pi}}  e^{-\frac{4 \ln(2) (x-c)^2}{w^2}}
@@ -79,7 +79,7 @@ def fwhmAreaGauss(x, A, c, w):
     # return (A/(w*np.sqrt(np.pi/4*np.log(2))))*np.exp((-4*np.log(2)*((x-c)**2))/(w**2))
 
 
-def Lorentz(x, gamma, c):
+def lorentzian(x, gamma, c):
     r"""Cauchy–Lorentz distribution.
 
     .. math:: y(x) = \frac{1}{\pi \gamma} \frac{\gamma^2}{\gamma^2 + (x-c)^2}
@@ -104,7 +104,7 @@ def Lorentz(x, gamma, c):
     return (1/(np.pi*gamma))*((gamma**2)/(gamma**2 + (x-c)**2))
 
 
-def fwhmLorentz(x, amp, c, w):
+def lorentzian_fwhm(x, amp, c, w):
     r"""Cauchy–Lorentz distribution.
 
     .. math:: y(x) = \text{amp } \frac{w^2}{w^2 + (x-c)^2}
@@ -123,7 +123,7 @@ def fwhmLorentz(x, amp, c, w):
     # return A*((w**2)/(w**2 + 4* (x-c)**2))
 
 
-def fwhmAreaLorentz(x, A, c, w):
+def lorentzian_area_fwhm(x, A, c, w):
     r"""Cauchy–Lorentz distribution.
 
     .. math:: y(x) = A \frac{1}{\pi w} \frac{w^2}{w^2 + (x-c)^2}
@@ -138,7 +138,7 @@ def fwhmAreaLorentz(x, A, c, w):
     # return ((2*A)/(np.pi))*((w)/(w**2 + 4*(x-c)**2))
 
 
-def fwhmVoigt(x, amp, c, w, m):
+def voigt_fwhm(x, amp, c, w, m):
     r"""Pseudo-voigt curve.
 
     .. math:: y(x) = A \left[ m  \frac{w^2}{w^2 + (x-c)^2}   + (1-m) e^{-\frac{4 \ln(2) (x-c)^2}{w^2}} \right]
@@ -156,7 +156,7 @@ def fwhmVoigt(x, amp, c, w, m):
     return amp*(m*lorentz + (1-m)*gauss)
 
 
-def fwhmAreaVoigt(x, A, c, w, m):
+def voigt_area_fwhm(x, A, c, w, m):
     r"""Pseudo-voigt curve.
 
     .. math:: y(x) = A \left[ m \frac{1}{\pi w} \frac{w^2}{w^2 + 4 (x-c)^2}   + (1-m) \frac{2 \sqrt{\ln(2)}}{w \sqrt{\pi}}  e^{-\frac{4 \ln(2) (x-c)^2}{w^2}} \right]
@@ -178,7 +178,7 @@ def fwhmAreaVoigt(x, A, c, w, m):
     return A*(m*lorentz + (1-m)*gauss)
 
 
-def fwhmArctan(x, amp, c, w):
+def arctan_fwhm(x, amp, c, w):
     r"""Arctangent function.
 
     .. math:: y(x) =   \frac{A}{\pi} \left[ \arctan(\frac{1}{w}(x-c)) + \frac{\pi}{2} \right]
@@ -193,7 +193,7 @@ def fwhmArctan(x, amp, c, w):
     return amp * (np.arctan((w**-1)*(x - c)) + (np.pi/2))/np.pi
 
 
-def square(x, amp, c, w):
+def square_pulse(x, amp, c, w):
     r"""Square step function.
 
     .. math::
@@ -213,7 +213,7 @@ def square(x, amp, c, w):
     return - np.heaviside(x-c-w/2, amp)*amp + np.heaviside(x-c+w/2, amp)*amp
 
 
-def fwhmErr(x, amp, c, w):
+def err_fwhm(x, amp, c, w):
     r"""Error function. Integal of gaussian function calculated by ``scipy.special.erf()``.
 
     .. math:: y(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt

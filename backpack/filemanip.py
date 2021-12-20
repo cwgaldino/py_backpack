@@ -9,7 +9,7 @@ import numpy as np
 import datetime
 from copy import deepcopy
 import collections
-from .intermanip import query_yes_no
+from .intermanip import query
 import json
 from detect_delimiter import detect
 # %%
@@ -17,25 +17,25 @@ import warnings
 import re
 # %%
 
-def rename_files(filelist, pattern, newPattern, ask=True):
+def rename_files(filelist, pattern, new_pattern, ask=True):
     """Change the filename pattern of files.
 
     Args:
         filelist (list): list of filepaths (string or pathlib.Path object).
         pattern (str): string that represents the filename pattern. Use ``{}`` to collect values within the file name.
-        newPattern (str): Each chunk of information assigned with ``{}`` in ``pattern``
+        new_pattern (str): Each chunk of information assigned with ``{}`` in ``pattern``
             is assigned a number based on its position. The first chunk is
             0, then 1, and so on. Use ``{position}`` to define the new pattern,
 
             Example:
                 If filename is 'data_5K-8.dat', ``pattern = {}_{}K-{}.dat`` and
-                ``newPattern={2}_{1}K.dat``. The new filename will be: '8_5K.dat'.
+                ``new_pattern={2}_{1}K.dat``. The new filename will be: '8_5K.dat'.
 
-            Tip:
+            Note:
                 Use ``\`` as an escape key.
 
-            Tip:
-                Use ``{n}`` in ``newPattern`` to inlcude the filenane index number (index within filelist).
+            Note:
+                Use ``{n}`` in ``new_pattern`` to inlcude the filenane index number (index regarding filelist).
 
         ask (bool): If true, it shows all the new filenames and asks for permission to rename.
     """
@@ -43,12 +43,12 @@ def rename_files(filelist, pattern, newPattern, ask=True):
     n_infos = pattern.count('{}')
     pattern = pattern.replace('{}', '(.+?)')
 
-    newPattern = newPattern.replace('{n}', '[n]')
+    new_pattern = new_pattern.replace('{n}', '[n]')
 
-    a = re.findall('{.+?}', newPattern)
+    a = re.findall('{.+?}', new_pattern)
     a = [int(item.replace('{', '').replace('}', '')) for item in a]
     if n_infos < max(a)+1:
-        raise AttributeError("newPattern has some {n} where n is bigger than the number of marked infos {} in pattern.")
+        raise AttributeError("new_pattern has some {n} where n is bigger than the number of marked infos {} in pattern.")
 
     if ask:
         permission = False
@@ -62,7 +62,7 @@ def rename_files(filelist, pattern, newPattern, ask=True):
             a = re.search(pattern, filePath.name)
             a = [a.group(i) for i in range(1, n_infos+1)]
 
-            newPattern_mod_1 = newPattern.replace('[n]', str(n))
+            newPattern_mod_1 = new_pattern.replace('[n]', str(n))
             newPattern_mod_2 = newPattern_mod_1.replace("{", "{a[").replace("}", "]}")
             nameNew = eval("f'"+ newPattern_mod_2 + "'")
 
@@ -72,7 +72,7 @@ def rename_files(filelist, pattern, newPattern, ask=True):
             print('NEW NAME = ' + nameNew)
             print('--')
 
-        permission = query_yes_no('Change names?', default="yes")
+        permission = query('Change names?', default="yes")
 
 
     if permission:
@@ -83,7 +83,7 @@ def rename_files(filelist, pattern, newPattern, ask=True):
             a = re.search(pattern, filePath.name)
             a = [a.group(i) for i in range(1, n_infos+1)]
 
-            newPattern_mod_1 = newPattern.replace('[n]', str(n))
+            newPattern_mod_1 = new_pattern.replace('[n]', str(n))
             newPattern_mod_2 = newPattern_mod_1.replace("{", "{a[").replace("}", "]}")
             nameNew = eval("f'"+ newPattern_mod_2 + "'")
 
@@ -108,6 +108,7 @@ def rmdir(dirpath):
             item.unlink()
     dirpath.rmdir()
 
+
 def rm(filepath):
     """Remove a file.
 
@@ -115,6 +116,7 @@ def rm(filepath):
         filepath (string or pathlib.Path): filepath.
     """
     filepath = Path(filepath).unlink()
+
 
 def filelist(dirpath='.', string='*'):
     """Returns a list with all the files containg `string` in its name.
@@ -149,8 +151,7 @@ def parsed_filelist(dirpath='.', string='*', ref=0, type='int'):
     """Returns a filelist organized in a dictionary.
 
     I searches for numbers (float and int) within the filenames (or foldernames)
-    and uses them as keys for the dictionary. Filenames (or foldernames) must
-    have the same pattern.
+    and uses them as keys for the dictionary.
 
     Args:
         dirpath (str or pathlib.Path, optional): directory path.
@@ -195,14 +196,14 @@ def parsed_filelist(dirpath='.', string='*', ref=0, type='int'):
     return parsed_folder
 
 
-def save_text(string, filepath='./Untitled.txt', checkOverwrite=False):
+def save_text(string, filepath='./Untitled.txt', check_overwrite=False):
     """Save text to txt file.
 
     Args:
         string (str): string to be saved.
         filepath (str or pathlib.Path, optional): path to save file. If no path
             is given, current working directory is used.
-        checkOverwrite (bool, optional): if True, it will check if file exists
+        check_overwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
 
     See Also:
@@ -210,10 +211,10 @@ def save_text(string, filepath='./Untitled.txt', checkOverwrite=False):
     """
     filepath = Path(filepath)
 
-    if checkOverwrite:
+    if check_overwrite:
         if filepath.exists() == True:
             if filepath.is_file() == True:
-                if query_yes_no('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
+                if query('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
                     pass
                 else:
                     warnings.warn('File not saved.')
@@ -245,13 +246,13 @@ def load_text(filepath):
     return text
 
 
-def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=True):
+def save_obj(obj, filepath='./Untitled.txt', check_overwrite=False, pretty_print=True):
     """Save object (array, dictionary, list, etc...) to a txt file.
 
     Args:
         obj (object): object to be saved.
         filepath (str or pathlib.Path, optional): path to save file.
-        checkOverwrite (bool, optional): if True, it will check if file exists
+        check_overwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
 
     See Also:
@@ -259,10 +260,10 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=T
     """
     filepath = Path(filepath)
 
-    if checkOverwrite:
+    if check_overwrite:
         if filepath.exists() == True:
             if filepath.is_file() == True:
-                if query_yes_no('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
+                if query('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
                     pass
                 else:
                     warnings.warn('File not saved because user did not allow overwriting.')
@@ -272,7 +273,7 @@ def save_obj(obj, filepath='./Untitled.txt', checkOverwrite=False, prettyPrint=T
                 filepath = filepath/'Untitled.txt'
 
     with open(str(filepath), 'w') as file:
-        if prettyPrint:
+        if pretty_print:
             file.write(json.dumps(obj, indent=4, sort_keys=False))
         else:
             file.write(json.dumps(obj))
@@ -371,7 +372,7 @@ def load_Comments(filepath, comment_flag='#', stop_flag='#'):
         return comments[:]
 
 
-def save_data(obj, filepath='./untitled.txt', add_labels=True, data_format='% .10e', header='', footer='', delimiter=', ', comment_flag='# ', newline='\n', checkOverwrite=False):
+def save_data(obj, filepath='./untitled.txt', add_labels=True, data_format='% .10e', header='', footer='', delimiter=', ', comment_flag='# ', newline='\n', check_overwrite=False):
     r"""Save an array or a dictionary in a txt file.
 
     Args:
@@ -410,7 +411,7 @@ def save_data(obj, filepath='./untitled.txt', add_labels=True, data_format='% .1
         delimiter (str, optional): The string used to separate values.
         comment_flag (str, optional): string that flag comments.
         newline (str, optional): string to indicate new lines.
-        checkOverwrite (bool, optional): if True, it will check if file exists
+        check_overwrite (bool, optional): if True, it will check if file exists
             and ask if user want to overwrite file.
 
     See Also:
@@ -418,10 +419,10 @@ def save_data(obj, filepath='./untitled.txt', add_labels=True, data_format='% .1
     """
     filepath = Path(filepath)
 
-    if checkOverwrite:
+    if check_overwrite:
         if filepath.exists() == True:
             if filepath.is_file() == True:
-                if query_yes_no('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
+                if query('File already exists!! Do you wish to ovewrite it?', 'yes') == True:
                     pass
                 else:
                     warnings.warn('File not saved.')
@@ -497,7 +498,7 @@ def load_data(filepath, delimiter=None, comment_flag='#', labels=None, force_arr
             warnings.warn('Could not figure out the delimiter. Trying space.')
     if delimiter == ' ':
         delimiter = None
-        
+
     # get data
     data = np.genfromtxt(str(filepath), delimiter=delimiter, comments=comment_flag)
 

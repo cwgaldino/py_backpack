@@ -226,7 +226,7 @@ y_final     = -1.75
 
 if True:
     # create inset
-    inset = fig.add_axes(figm.axBox2figBox(ax2putInset, [x_init, y_init, x_final, y_final]))
+    inset = fig.add_axes(figm.ax_box2fig_box(ax2putInset, [x_init, y_init, x_final, y_final]))
     # inset = fig.add_axes([0.13, 0.81, 0.17, 0.17])
     # inset = fig.add_axes(Bbox([[.25, .38], [.3, .5]]))
     # inset.set_position([.685,.32,.25,.3], which='both')

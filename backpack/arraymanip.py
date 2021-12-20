@@ -5,7 +5,7 @@
 import numpy as np
 import copy
 from scipy.optimize import curve_fit
-from .model_functions import fwhmVoigt
+from .model_functions import voigt_fwhm
 
 
 def index(x, value):
@@ -85,33 +85,33 @@ def extract(x, y, ranges):
         return np.hstack(x[choose_range]), np.hstack(y[choose_range])
 
 
-def movingaverage(x, window_size):
+def moving_average(x, n):
     """Returns the moving average of an array.
 
     Args:
         x (list or array): 1D array.
-        window_size (int): number of points to average.
+        n (int): number of points to average.
 
     Returns:
-        array of lenght given by (len(x)-window_size+1).
+        array of lenght given by (len(x)-n+1).
 
     Example:
         >>> x = [0,1,2,3,4,5,6,7,8,9]
-        >>> print(am.movingaverage(x, 1))
+        >>> print(am.moving_average(x, 1))
         [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
-        >>> print(am.movingaverage(x, 2))
+        >>> print(am.moving_average(x, 2))
         [0.5 1.5 2.5 3.5 4.5 5.5 6.5 7.5 8.5]
-        >>> print(am.movingaverage(x, 3))
+        >>> print(am.moving_average(x, 3))
         [1. 2. 3. 4. 5. 6. 7. 8.]
-        >>> print(am.movingaverage(x, 4))
+        >>> print(am.moving_average(x, 4))
         [1.5 2.5 3.5 4.5 5.5 6.5 7.5]
 
     """
-    if window_size < 1:
-        raise ValueError('window_size must be a positive integer (> 1).')
+    if n < 1:
+        raise ValueError('n must be a positive integer (> 1).')
 
     x = np.array(x)
-    window = np.ones(int(window_size))/float(window_size)
+    window = np.ones(int(n))/float(n)
 
     return np.convolve(x, window, 'valid')
 
@@ -140,12 +140,12 @@ def derivative(x, y, order=1):
         y_diff = np.diff(y_diff)/x_diff[:len(x_diff)-(i+1)]
 
     for i in range(order):
-        x = movingaverage(x, window_size=2)
+        x = moving_average(x, n=2)
 
     return x, y_diff
 
 
-def shift(x, y, shift, mode='hard'):
+def shifted(x, y, shift, mode='hard'):
     """Shift (x, y) data.
 
     Args:
@@ -222,14 +222,13 @@ def peak_fit(x, y, guess_c=None, guess_A=None, guess_w=None, guess_offset=0, fix
             returned will be the sum of the ``w`` of the first and second halfs.
 
     Returns:
-        1) 2 column (x, y) array with the fitted peak.
-        2) 2 column (x, y) array with "Smoothed" fitted peak. This is just the
-            fitted peak array with a linear interpolation with 100 times more data points.
-        3) An array with the optimized parameters for Amplitude, Center, FWHM and offset.
-        4) One standard deviation errors on the parameters
+        1) 2 column (x, y) array with "Smoothed" fitted peak (array lenght 100 bigger than input x, y).
+        2) An array with the optimized parameters
+        3) One standard deviation errors on the parameters
+        4) Peak function
 
     See Also:
-        :py:func:`backpack.model_functions.fwhmVoigt`
+        :py:func:`backpack.model_functions.voigt_fwhm`
 
     Example:
         >>> import matplotlib.pyplot as plt
@@ -239,7 +238,7 @@ def peak_fit(x, y, guess_c=None, guess_A=None, guess_w=None, guess_offset=0, fix
         >>> w = 10
         >>> c = 25
         >>> y = fwhmGauss(x, amp, c, w) + np.random.normal(-0.1, 0.1, 1000)
-        >>> _, smooth, popt, err = am.peak_fit(x, y)
+        >>> smooth, popt, err, f = am.peak_fit(x, y)
         >>> print(f'A = {popt[0]} +/- {err[0]}')
         A = 1.0187633097698565 +/- 0.015832212669397393
         >>> print(f'c = {popt[1]} +/- {err[1]}')
@@ -274,15 +273,15 @@ def peak_fit(x, y, guess_c=None, guess_A=None, guess_w=None, guess_offset=0, fix
         if asymmetry:
             p0 = [guess_A, guess_c, guess_w, 0.5, guess_w, 0.5, guess_offset]
             def function2fit(x, A, c, w1, m1, w2, m2, offset):
-                f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, m1) + offset +\
-                    np.heaviside(c-x, 0)*fwhmVoigt(x, A, c, w2, m2)
+                f = np.heaviside(x-c, 0)*voigt_fwhm(x, A, c, w1, m1) + offset +\
+                    np.heaviside(c-x, 0)*voigt_fwhm(x, A, c, w2, m2)
                 return f
             bounds=[[0,      start,   0,      0, 0,      0, -np.inf],
                     [np.inf, stop,  np.inf, 1, np.inf, 1, np.inf]]
         else:
             p0 = [guess_A, guess_c, guess_w, 0.5, guess_offset]
             def function2fit(x, A, c, w, m, offset):
-                return fwhmVoigt(x, A, c, w, m) + offset
+                return voigt_fwhm(x, A, c, w, m) + offset
             bounds=[[0,      start,   0,      0, -np.inf],
                     [np.inf, stop,  np.inf, 1, np.inf]]
 
@@ -294,15 +293,15 @@ def peak_fit(x, y, guess_c=None, guess_A=None, guess_w=None, guess_offset=0, fix
         if asymmetry:
             p0 = [guess_A, guess_c, guess_w, guess_w, guess_offset]
             def function2fit(x, A, c, w1, w2, offset):
-                f = np.heaviside(x-c, 0)*fwhmVoigt(x, A, c, w1, fixed_m) + offset +\
-                    np.heaviside(c-x, 0)*fwhmVoigt(x, A, c, w2, fixed_m)
+                f = np.heaviside(x-c, 0)*voigt_fwhm(x, A, c, w1, fixed_m) + offset +\
+                    np.heaviside(c-x, 0)*voigt_fwhm(x, A, c, w2, fixed_m)
                 return f
             bounds=[[0,      start,   0,      0,  -np.inf],
                     [np.inf, stop,  np.inf, 1,   np.inf]]
         else:
             p0 = [guess_A, guess_c, guess_w, guess_offset]
             def function2fit(x, A, c, w, offset):
-                return fwhmVoigt(x, A, c, w, fixed_m) + offset
+                return voigt_fwhm(x, A, c, w, fixed_m) + offset
             bounds=[[0,      start,   0,      -np.inf],
                     [np.inf, stop,  np.inf, np.inf]]
 
@@ -326,9 +325,10 @@ def peak_fit(x, y, guess_c=None, guess_A=None, guess_w=None, guess_offset=0, fix
             popt_2 = (popt[0], popt[1], popt[2]/2+popt[4]/2, popt[-1], popt[-2])
         else:
             popt_2 = (popt[0], popt[1], popt[2], popt[-1], popt[-2])
-    return function2fit(x, *popt), arr100, popt_2, err
+    return arr100, popt_2, err, lambda x: function2fit(x, *popt)
 
-def flatten(x):
+
+def flattened(x):
     """Returns the flattened list or tuple."""
     if len(x) == 0:
         return x
@@ -336,14 +336,18 @@ def flatten(x):
         return flatten(x[0]) + flatten(x[1:])
     return x[:1] + flatten(x[1:])
 
-def transpose(l):
-    """Transpose lists."""
+
+def transposed(l):
+    """Returns transposed lists/arrays."""
     try:
         row_count, col_count = np.shape(l)
         return [list(x) for x in list(zip(*l))]
     except ValueError:
         return [[x] for x in l]
 
-def compress(data, selectors):
-    # compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F
+
+def compressed(data, selectors):
+    """
+    compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F
+    """
     return [d for d, s in zip(data, selectors) if s]
