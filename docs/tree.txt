@@ -1,8 +1,0 @@
-sh(4879)---oosplash(4880)-+-soffice.bin(4901)-+-soffice.bin(4905)
-                          |                   |-{soffice.bin}(4906)
-                          |                   |-{soffice.bin}(4912)
-                          |                   |-{soffice.bin}(4913)
-                          |                   |-{soffice.bin}(4914)
-                          |                   `-{soffice.bin}(4915)
-                          |-{oosplash}(4895)
-                          `-{oosplash}(4900)
