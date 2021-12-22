@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'py-backpack'
+project = 'py_backpack'
 copyright = '2020, Carlos Galdino'
 author = 'Carlos Galdino'
 
