@@ -134,9 +134,12 @@ def copy2clipboard(txt):
     return
 
 def png2clipboard(filepath):
-    """Copy text to clipboard.
+    """Copy png pictures to clipboard.
 
-    on linux it uses ``xsel`` package (``sudo apt-get install -y xsel``)."""
+    Warning:
+        Only implemented on Linux.
+
+    On linux it uses ``xsel`` package (``sudo apt-get install -y xsel``)."""
     if is_windows:
         raise NotImplementedError('This function is not implemented on Windows yet.')
     elif is_linux:
@@ -146,9 +149,12 @@ def png2clipboard(filepath):
     return
 
 def svg2clipboard(filepath):
-    """Copy text to clipboard.
+    """Copy svg pictures to clipboard.
 
-    on linux it uses ``xsel`` package (``sudo apt-get install -y xsel``)."""
+    Warning:
+        Only implemented on Linux.
+
+    On linux it uses ``xsel`` package (``sudo apt-get install -y xsel``)."""
     if is_windows:
         raise NotImplementedError('This function is not implemented on Windows yet.')
     elif is_linux:
