@@ -36,23 +36,49 @@ def sort(ref, *args):
     return s
 
 
+def choose(x, ranges):
+    """Return a mask of x values inside range pairs.
+
+    Args.
+        x (list or array): 1d array.
+        ranges (list): a pair of values or a list of pairs. Each pair represents
+            the start and stop of a data range from x.
+
+    Returns:
+        1d list.
+    """
+
+    try:
+        choose_range = [None]*len(ranges)
+        for i, (x_init, x_final) in enumerate(ranges):
+            choose_range[i] = np.logical_and(x>=x_init, x<=x_final)
+        choose_range = [True if x == 1 else False for x in sum(choose_range)]
+    except TypeError:
+        x_init, x_final = ranges
+        choose_range = np.logical_and(x>=x_init, x<=x_final)
+        choose_range = [True if x == 1 else False for x in sum(choose_range)]
+    return choose_range
+
+
 def extract(x, y, ranges):
     """Returns specifc data ranges from x and y.
 
     Args:
         x (list or array): 1D reference vector.
-        y (list or array): 1D y-coordinates or list of several data sets sharing
-            the same x-coordinates.
+        y (list or array): 1D y-coordinates or list of several data sets.
         ranges (list): a pair of values or a list of pairs. Each pair represents
-            the start and stop of a data range from ref.
+            the start and stop of a data range from x.
 
     Returns:
-        x and y arrays.
+        x and y arrays. If `y` is 1d, the returned `y` is 1d. If `y` is
+        a multicolumn array then the returned `y` is also multicolumn
 
 
     Examples:
 
-        >>> x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        if `y` is 1d, the returned `y` is 1d:
+
+        >>> x = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         >>> y = np.array(x)**2
         >>> ranges = ((0, 3), (7.5, 9))
         >>> x_sliced, y_sliced = am.extract(x, y, ranges)
@@ -61,28 +87,35 @@ def extract(x, y, ranges):
         >>> print(y_sliced)
         [0 1 4 9 64 81]
 
+        if `y` is multicolumn, the returned `y` is also multicolumn:
+
+        >>> x = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> y = np.zeros((10, 2))
+        >>> y[:, 0] = x**2
+        >>> y[:, 0] = x**3
+        >>> ranges = ((0, 3), (7.5, 9))
+        >>> x_sliced, y_sliced = am.extract(x, y, ranges)
+        >>> print(x_sliced)
+        [0. 1. 2. 3. 8. 9.]
+        >>> print(y_sliced)
+        [[  0.   0.]
+         [  1.   0.]
+         [  8.   0.]
+         [ 27.   0.]
+         [512.   0.]
+         [729.   0.]]
+
+
     """
     x = np.array(x)
     y = np.array(y)
 
-    try:
-        choose_range = []
-        for x_init, x_final in ranges:
-            choose_range.append(np.logical_and(x>=x_init, x<=x_final))
-        choose_range = [True if x == 1 else False for x in sum(choose_range)]
-    except TypeError:
-        choose_range = []
-        x_init, x_final = ranges
-        choose_range.append(np.logical_and(x>=x_init, x<=x_final))
-        choose_range = [True if x == 1 else False for x in sum(choose_range)]
-
-    if len(y.shape) > 1:
-        s = []
-        for i in range(y.shape[0]):
-            s.append(np.hstack(y[i][choose_range]))
-        return np.hstack(x[choose_range]), s
+    choose_range = choose(x, ranges)
+    temp = np.compress(choose_range, np.c_[y, x], axis=0)
+    if len(temp[0]) > 2:
+        return temp[:, -1], temp[:, :-1]
     else:
-        return np.hstack(x[choose_range]), np.hstack(y[choose_range])
+        return temp[:, -1], temp[:, 0]
 
 
 def moving_average(x, n):
