@@ -35,7 +35,6 @@ def sort(ref, *args):
         s.append( [x1 for (y,x1) in sorted(zip(ref,x), key=lambda pair: pair[0])])
     return s
 
-
 def choose(x, ranges):
     """Return a mask of x values inside range pairs.
 
@@ -47,18 +46,15 @@ def choose(x, ranges):
     Returns:
         1d list.
     """
-
     try:
         choose_range = [None]*len(ranges)
         for i, (x_init, x_final) in enumerate(ranges):
             choose_range[i] = np.logical_and(x>=x_init, x<=x_final)
-        choose_range = [True if x == 1 else False for x in sum(choose_range)]
+        choose_range = [True if x == 1 else False for x in np.sum(choose_range, axis=0)]
     except TypeError:
         x_init, x_final = ranges
         choose_range = np.logical_and(x>=x_init, x<=x_final)
-        choose_range = [True if x == 1 else False for x in sum(choose_range)]
     return choose_range
-
 
 def extract(x, y, ranges):
     """Returns specifc data ranges from x and y.
@@ -111,11 +107,12 @@ def extract(x, y, ranges):
     y = np.array(y)
 
     choose_range = choose(x, ranges)
-    temp = np.compress(choose_range, np.c_[y, x], axis=0)
+    temp = np.compress(choose_range, np.c_[y.transpose(), x], axis=0)
     if len(temp[0]) > 2:
         return temp[:, -1], temp[:, :-1]
     else:
         return temp[:, -1], temp[:, 0]
+
 
 
 def moving_average(x, n):
